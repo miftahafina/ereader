@@ -1,42 +1,45 @@
 :root {
-  --bg: #f4f5f7;
-  --surface: #ffffff;
-  --surface-2: #eceef1;
-  --text: #1f2328;
-  --text-muted: #6b7280;
-  --border: #e2e5ea;
-  --accent: #2563eb;
+  --bg: #fbfbfd;
+  --surface: rgba(255, 255, 255, 0.4);
+  --surface-2: rgba(255, 255, 255, 0.2);
+  --text: #1d1d1f;
+  --text-muted: #86868b;
+  --border: rgba(0, 0, 0, 0.08);
+  --accent: #0071e3;
   --accent-contrast: #ffffff;
   --reader-bg: #ffffff;
-  --shadow: 0 8px 30px rgba(15, 23, 42, 0.12);
+  --shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+  --glass-blur: blur(24px) saturate(200%);
+  --radius-lg: 28px;
+  --radius-md: 16px;
   color-scheme: light;
 }
 
 :root[data-theme='sepia'] {
-  --bg: #ece0c8;
-  --surface: #fbf5e6;
-  --surface-2: #f1e5cc;
+  --bg: #f4ead5;
+  --surface: rgba(251, 245, 230, 0.4);
+  --surface-2: rgba(251, 245, 230, 0.2);
   --text: #5b4636;
   --text-muted: #8a7a63;
-  --border: #e0d2b4;
+  --border: rgba(91, 70, 54, 0.1);
   --accent: #9a5b13;
   --accent-contrast: #ffffff;
   --reader-bg: #f6ecd6;
-  --shadow: 0 8px 30px rgba(91, 70, 54, 0.18);
+  --shadow: 0 8px 32px rgba(91, 70, 54, 0.08);
   color-scheme: light;
 }
 
 :root[data-theme='dark'] {
-  --bg: #0f1114;
-  --surface: #1a1d21;
-  --surface-2: #23272c;
-  --text: #e6e8eb;
-  --text-muted: #9aa0a8;
-  --border: #2a2e34;
-  --accent: #6ea8fe;
-  --accent-contrast: #0f1114;
-  --reader-bg: #121417;
-  --shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+  --bg: #000000;
+  --surface: rgba(28, 28, 30, 0.4);
+  --surface-2: rgba(44, 44, 46, 0.2);
+  --text: #f5f5f7;
+  --text-muted: #a1a1a6;
+  --border: rgba(255, 255, 255, 0.08);
+  --accent: #0a84ff;
+  --accent-contrast: #ffffff;
+  --reader-bg: #1c1c1e;
+  --shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
   color-scheme: dark;
 }
 
@@ -74,17 +77,25 @@ button {
   border: none;
   background: var(--accent);
   color: var(--accent-contrast);
-  padding: 10px 18px;
-  border-radius: 10px;
-  font-weight: 600;
+  padding: 10px 24px;
+  border-radius: 999px;
+  font-weight: 500;
   cursor: pointer;
-  transition: filter 0.15s ease;
+  transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  backdrop-filter: var(--glass-blur);
 }
 .primary-btn:hover:not(:disabled) {
-  filter: brightness(1.08);
+  filter: brightness(1.1);
+  transform: scale(1.05);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+.primary-btn:active:not(:disabled) {
+  transform: scale(0.95);
+  filter: brightness(0.9);
 }
 .primary-btn:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: default;
 }
 
@@ -92,31 +103,44 @@ button {
   width: 100%;
   margin-top: 8px;
   border: 1px solid var(--border);
-  background: transparent;
+  background: var(--surface);
+  backdrop-filter: var(--glass-blur);
   color: var(--text);
-  padding: 10px;
-  border-radius: 10px;
+  padding: 10px 20px;
+  border-radius: 999px;
   cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 .ghost-btn:hover {
   background: var(--surface-2);
+  transform: scale(1.02);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+.ghost-btn:active {
+  transform: scale(0.98);
 }
 
 .icon-btn {
   border: none;
   background: transparent;
-  width: 38px;
-  height: 38px;
-  border-radius: 10px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
   cursor: pointer;
   font-size: 18px;
   display: grid;
   place-items: center;
   color: var(--text);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .icon-btn:hover,
 .icon-btn.active {
-  background: var(--surface-2);
+  background: var(--surface);
+  backdrop-filter: var(--glass-blur);
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 /* ---------- Library ---------- */
@@ -175,17 +199,18 @@ button {
   width: 100%;
   padding: 0;
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   overflow: hidden;
   background: var(--surface-2);
   display: grid;
   place-items: center;
   cursor: pointer;
   box-shadow: var(--shadow);
-  transition: transform 0.15s ease;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 .book-cover:hover {
-  transform: translateY(-3px);
+  transform: scale(1.05) translateY(-5px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
 }
 .book-cover img {
   width: 100%;
@@ -254,26 +279,36 @@ button {
   position: absolute;
   top: 8px;
   right: 8px;
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   border: none;
   border-radius: 50%;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
   color: #fff;
   cursor: pointer;
   opacity: 0;
-  transition: opacity 0.15s ease;
+  transition: all 0.2s ease;
+  display: grid;
+  place-items: center;
 }
 .book-card:hover .delete-btn,
 .delete-btn:focus-visible {
   opacity: 1;
 }
+.delete-btn:hover {
+  background: rgba(220, 38, 38, 0.8);
+  transform: scale(1.1);
+}
 
 .empty-state {
   text-align: center;
   padding: 80px 24px;
-  border: 2px dashed var(--border);
-  border-radius: 18px;
+  background: var(--surface);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
 }
 .empty-icon {
   font-size: 52px;
@@ -311,12 +346,13 @@ button {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 8px 12px;
+  padding: 8px 16px;
   border-bottom: 1px solid var(--border);
   background: var(--surface);
+  backdrop-filter: var(--glass-blur);
   position: relative;
   z-index: 20;
-  transition: opacity 0.2s ease;
+  transition: all 0.3s ease;
 }
 
 .reader-heading {
@@ -400,14 +436,16 @@ button {
   max-width: min(320px, calc(100vw - 24px));
   transform: translate(-50%, calc(-100% - 10px));
   background: var(--surface);
+  backdrop-filter: var(--glass-blur);
   color: var(--text);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   box-shadow: var(--shadow);
   padding: 12px 14px;
   font-size: 13px;
   line-height: 1.45;
   text-align: left;
+  transition: all 0.2s ease;
 }
 .word-popup.below {
   transform: translate(-50%, 10px);
@@ -497,10 +535,12 @@ button {
   flex-shrink: 0;
   overflow-y: auto;
   background: var(--surface);
+  backdrop-filter: var(--glass-blur);
   border-right: 1px solid var(--border);
   padding: 18px 16px 40px;
   position: relative;
   z-index: 30;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .settings-sidebar {
   width: 280px;
@@ -523,9 +563,10 @@ button {
   padding: 8px 16px;
   border-top: 1px solid var(--border);
   background: var(--surface);
+  backdrop-filter: var(--glass-blur);
   position: relative;
   z-index: 20;
-  transition: opacity 0.2s ease;
+  transition: all 0.3s ease;
 }
 
 .reader.chrome-hidden .reader-top,
@@ -534,19 +575,28 @@ button {
   pointer-events: none;
 }
 .nav-btn {
-  width: 38px;
-  height: 38px;
+  width: 42px;
+  height: 42px;
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: 50%;
   background: var(--surface);
+  backdrop-filter: var(--glass-blur);
   cursor: pointer;
   font-size: 20px;
   line-height: 1;
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-bottom: 2px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .nav-btn:hover {
   background: var(--surface-2);
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+.nav-btn:active {
+  transform: scale(0.9);
 }
 .progress-track {
   flex: 1;
@@ -642,24 +692,29 @@ button {
 }
 .segmented {
   display: flex;
+  background: var(--surface-2);
+  backdrop-filter: var(--glass-blur);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--radius-md);
+  padding: 2px;
   overflow: hidden;
 }
 .segmented button {
   flex: 1;
   border: none;
   background: transparent;
-  padding: 8px 4px;
+  padding: 6px 4px;
   cursor: pointer;
   font-size: 13px;
-}
-.segmented button + button {
-  border-left: 1px solid var(--border);
+  border-radius: calc(var(--radius-md) - 2px);
+  transition: all 0.2s ease;
+  color: var(--text-muted);
 }
 .segmented button.active {
-  background: var(--accent);
-  color: var(--accent-contrast);
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  font-weight: 600;
 }
 
 /* ---------- Drop overlay & toast ---------- */
@@ -679,8 +734,9 @@ button {
   gap: 12px;
   padding: 48px 64px;
   border: 2px dashed var(--accent);
-  border-radius: 18px;
+  border-radius: var(--radius-lg);
   background: var(--surface);
+  backdrop-filter: var(--glass-blur);
   box-shadow: var(--shadow);
 }
 .drop-icon {
