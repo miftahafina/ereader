@@ -37,6 +37,22 @@ export default function App() {
   useEffect(() => {
     saveSettings(settings)
     document.documentElement.dataset.theme = settings.theme
+
+    const themeColors: Record<string, string> = {
+      light: '#fbfbfd',
+      sepia: '#f4ead5',
+      dark: '#000000',
+    }
+
+    const metaThemeColor = document.querySelector('meta[name=\'theme-color\]')
+    if (metaThemeColor) {
+      metaThemeColor.setAttribute('content', themeColors[settings.theme] || themeColors.light)
+    } else {
+      const meta = document.createElement('meta')
+      meta.name = 'theme-color'
+      meta.content = themeColors[settings.theme] || themeColors.light
+      document.head.appendChild(meta)
+    }
   }, [settings])
 
   useEffect(() => {
