@@ -303,6 +303,7 @@ button {
   display: flex;
   flex-direction: column;
   height: 100%;
+  position: relative;
   background: var(--reader-bg);
 }
 
@@ -313,6 +314,9 @@ button {
   padding: 8px 12px;
   border-bottom: 1px solid var(--border);
   background: var(--surface);
+  position: relative;
+  z-index: 20;
+  transition: opacity 0.2s ease;
 }
 
 .reader-heading {
@@ -365,6 +369,7 @@ button {
 .reader-grain {
   position: absolute;
   inset: 0;
+  z-index: 5;
   pointer-events: none;
   mix-blend-mode: multiply;
   background-repeat: repeat;
@@ -378,6 +383,7 @@ button {
 .reader-overlay {
   position: absolute;
   inset: 0;
+  z-index: 20;
   display: grid;
   place-items: center;
   background: var(--reader-bg);
@@ -493,6 +499,8 @@ button {
   background: var(--surface);
   border-right: 1px solid var(--border);
   padding: 18px 16px 40px;
+  position: relative;
+  z-index: 30;
 }
 .settings-sidebar {
   width: 280px;
@@ -515,11 +523,15 @@ button {
   padding: 8px 16px;
   border-top: 1px solid var(--border);
   background: var(--surface);
+  position: relative;
+  z-index: 20;
+  transition: opacity 0.2s ease;
 }
 
 .reader.chrome-hidden .reader-top,
 .reader.chrome-hidden .reader-bottom {
-  display: none;
+  opacity: 0;
+  pointer-events: none;
 }
 .nav-btn {
   width: 38px;
