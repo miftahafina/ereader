@@ -53,16 +53,18 @@ File .epub (drag & drop)
 
 ### Selesai
 - [x] Drag & drop & impor banyak file `.epub`
+- [x] Buku sampel bawaan (Alice, The Time Machine, Pride & Prejudice) + cover
 - [x] Perpustakaan lokal (sampul, judul, penulis, progres) di IndexedDB
 - [x] Reader: navigasi halaman, keyboard, tap zone, swipe
 - [x] Daftar isi rekursif + lompat bab
 - [x] Simpan & lanjutkan posisi baca (CFI), flush saat keluar
 - [x] Tema terang/sepia/gelap
-- [x] Font Literata (mirip Bookerly) sebagai default + opsi font lain
+- [x] Font Literata sebagai default + opsi font lain
 - [x] Ukuran huruf, jarak baris, jarak antar paragraf, lebar kolom
 - [x] Mode halaman / gulir
 - [x] Layout 2 kolom otomatis di desktop/tablet landscape
 - [x] Tombol volume (best-effort) & toggle toolbar via tap tengah
+- [x] Layar penuh (Fullscreen API) di library & reader
 - [x] Konfigurasi Cloudflare Pages
 
 ### Roadmap (belum)

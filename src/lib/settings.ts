@@ -41,7 +41,7 @@ export const themePalette: Record<
 }
 
 export const fontOptions: { value: string; label: string; stack: string }[] = [
-  { value: 'literata', label: 'Literata (mirip Bookerly)', stack: "'Literata Variable', Georgia, serif" },
+  { value: 'literata', label: 'Literata', stack: "'Literata Variable', Georgia, serif" },
   { value: 'default', label: 'Default', stack: '' },
   { value: 'serif', label: 'Serif', stack: 'Georgia, "Times New Roman", serif' },
   {

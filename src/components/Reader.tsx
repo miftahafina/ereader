@@ -7,6 +7,7 @@ import { fontOptions, themePalette } from '../lib/settings'
 import type { BookRecord, ReaderSettings } from '../lib/types'
 import { SettingsPanel } from './SettingsPanel'
 import { Toc } from './Toc'
+import { FullscreenButton } from './FullscreenButton'
 
 interface ReaderProps {
   bookId: string
@@ -312,6 +313,7 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
           >
             Aa
           </button>
+          <FullscreenButton />
         </div>
       </header>
 

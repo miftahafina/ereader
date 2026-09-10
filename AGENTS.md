@@ -37,17 +37,21 @@ src/
     types.ts               tipe bersama (BookRecord, ReaderSettings, dll)
     db.ts                  IndexedDB: store `books` & `progress`
     epub.ts                ekstraksi metadata + sampul dari file EPUB
+    samples.ts             manifest buku sampel bawaan (public domain)
     settings.ts            default, palette tema, opsi font, persist localStorage
     fontFaces.ts           @font-face Literata (URL absolut) untuk iframe
   hooks/
     useFileDrop.ts         deteksi drag & drop file level window
+    useFullscreen.ts       state & toggle Fullscreen API
   components/
     Library.tsx            grid buku + impor + hapus
     Reader.tsx             integrasi epub.js, navigasi, tema, gesture
     Toc.tsx                daftar isi rekursif
     SettingsPanel.tsx      kontrol tampilan
+    FullscreenButton.tsx   tombol layar penuh (hidden bila tidak didukung)
 public/
   _redirects, _headers     konfigurasi Cloudflare Pages
+  samples/*.epub           buku sampel public domain (Alice, Time Machine, Pride & Prejudice)
 wrangler.jsonc             konfigurasi deploy Pages
 ```
 

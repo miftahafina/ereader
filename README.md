@@ -5,15 +5,25 @@ Pembaca EPUB yang berjalan **sepenuhnya di browser**. Cukup seret (drag & drop) 
 ## Fitur
 
 - Drag & drop file EPUB (bisa banyak sekaligus)
+- Buku sampel bawaan siap baca (Alice in Wonderland, The Time Machine, Pride and Prejudice)
 - Perpustakaan lokal: sampul, judul, penulis, dan progres (IndexedDB)
 - Daftar isi (TOC) rekursif + lompat bab
 - Simpan & lanjutkan posisi baca (CFI)
 - Tema: terang, sepia, gelap
-- Font **Literata** (mirip Bookerly) default, plus opsi font lain
+- Font **Literata** default, plus opsi font lain
 - Pengaturan: ukuran huruf, jarak baris, jarak antar paragraf, lebar kolom, mode halaman/gulir
 - Layout **2 kolom** otomatis di desktop/tablet landscape
 - Navigasi mobile: tap kiri/kanan, swipe, tap tengah untuk sembunyikan toolbar, tombol volume (best-effort)
+- Layar penuh (Fullscreen API) di perpustakaan & reader
 - 100% client-side & offline-capable
+
+## Buku sampel
+
+Tiga buku public domain dari [Project Gutenberg](https://www.gutenberg.org) ikut dibundel di `public/samples/` dan bisa dimuat lewat tombol **"Baca buku sampel"** saat perpustakaan masih kosong:
+
+- *Alice's Adventures in Wonderland* — Lewis Carroll
+- *The Time Machine* — H. G. Wells
+- *Pride and Prejudice* — Jane Austen
 
 ## Pengembangan
 
@@ -47,7 +57,7 @@ src/
   lib/                     types, db (IndexedDB), epub, settings, fontFaces
   hooks/useFileDrop.ts     deteksi drag & drop level window
   components/              Library, Reader, Toc, SettingsPanel
-public/                    _redirects, _headers, favicon
+public/                    _redirects, _headers, favicon, samples/*.epub
 wrangler.jsonc             konfigurasi Cloudflare Pages
 ```
 

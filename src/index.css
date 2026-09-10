@@ -137,6 +137,13 @@ button {
   margin-bottom: 28px;
 }
 
+.library-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
 .library-title {
   margin: 0;
   font-size: 26px;
@@ -278,6 +285,17 @@ button {
 .empty-state p {
   color: var(--text-muted);
   margin: 0 0 22px;
+}
+
+.empty-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 260px;
+  margin: 0 auto;
+}
+.empty-actions .ghost-btn {
+  margin-top: 0;
 }
 
 /* ---------- Reader ---------- */
@@ -568,6 +586,9 @@ button {
   .library-top {
     flex-direction: column;
     align-items: stretch;
+  }
+  .library-actions .primary-btn {
+    flex: 1;
   }
   .book-grid {
     grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));

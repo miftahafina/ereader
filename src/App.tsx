@@ -2,6 +2,7 @@ import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react
 import { Library } from './components/Library'
 import { useFileDrop } from './hooks/useFileDrop'
 import { addBook, deleteBook, getAllProgress, listBooks } from './lib/db'
+import { sampleBooks } from './lib/samples'
 import { loadSettings, saveSettings } from './lib/settings'
 import type { BookMeta, ProgressRecord, ReaderSettings } from './lib/types'
 
@@ -89,6 +90,35 @@ export default function App() {
     [refresh],
   )
 
+  const handleLoadSamples = useCallback(async () => {
+    const existing = new Set(books.map((book) => book.fileName))
+    const pending = sampleBooks.filter((sample) => !existing.has(sample.fileName))
+    if (pending.length === 0) {
+      setMessage('Buku sampel sudah ada di perpustakaan.')
+      return
+    }
+
+    setImporting(true)
+    const files: File[] = []
+    for (const sample of pending) {
+      try {
+        const response = await fetch(sample.url)
+        if (!response.ok) continue
+        const blob = await response.blob()
+        files.push(new File([blob], sample.fileName, { type: 'application/epub+zip' }))
+      } catch {
+        // lewati sampel yang gagal diunduh
+      }
+    }
+    setImporting(false)
+
+    if (files.length === 0) {
+      setMessage('Gagal memuat buku sampel.')
+      return
+    }
+    await handleImport(files)
+  }, [books, handleImport])
+
   const handleDelete = useCallback(
     async (id: string) => {
       const book = books.find((item) => item.id === id)
@@ -137,9 +167,10 @@ export default function App() {
         onOpen={(id) => setView({ type: 'reader', id })}
         onDelete={handleDelete}
         onImport={handleImport}
+        onLoadSamples={handleLoadSamples}
       />
     )
-  }, [view, settings, handleSettingsChange, books, progress, importing, handleDelete, handleImport, refresh])
+  }, [view, settings, handleSettingsChange, books, progress, importing, handleDelete, handleImport, handleLoadSamples, refresh])
 
   return (
     <div className="app" data-view={view.type}>

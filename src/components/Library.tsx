@@ -1,5 +1,6 @@
 import { useRef } from 'react'
 import type { BookMeta, ProgressRecord } from '../lib/types'
+import { FullscreenButton } from './FullscreenButton'
 
 interface LibraryProps {
   books: BookMeta[]
@@ -8,6 +9,7 @@ interface LibraryProps {
   onOpen: (id: string) => void
   onDelete: (id: string) => void
   onImport: (files: File[]) => void
+  onLoadSamples: () => void
 }
 
 function formatSize(bytes: number): string {
@@ -16,7 +18,15 @@ function formatSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
-export function Library({ books, progress, importing, onOpen, onDelete, onImport }: LibraryProps) {
+export function Library({
+  books,
+  progress,
+  importing,
+  onOpen,
+  onDelete,
+  onImport,
+  onLoadSamples,
+}: LibraryProps) {
   const inputRef = useRef<HTMLInputElement>(null)
 
   return (
@@ -28,9 +38,12 @@ export function Library({ books, progress, importing, onOpen, onDelete, onImport
             {books.length > 0 ? `${books.length} buku tersimpan di perangkat ini` : 'Belum ada buku'}
           </p>
         </div>
-        <button className="primary-btn" onClick={() => inputRef.current?.click()} disabled={importing}>
-          {importing ? 'Mengimpor…' : '+ Tambah EPUB'}
-        </button>
+        <div className="library-actions">
+          <FullscreenButton />
+          <button className="primary-btn" onClick={() => inputRef.current?.click()} disabled={importing}>
+            {importing ? 'Mengimpor…' : '+ Tambah EPUB'}
+          </button>
+        </div>
         <input
           ref={inputRef}
           type="file"
@@ -50,9 +63,14 @@ export function Library({ books, progress, importing, onOpen, onDelete, onImport
           <div className="empty-icon">📚</div>
           <h2>Seret &amp; lepas file EPUB ke sini</h2>
           <p>Semua file diproses langsung di browser dan tidak diunggah ke mana pun.</p>
-          <button className="primary-btn" onClick={() => inputRef.current?.click()}>
-            Pilih file EPUB
-          </button>
+          <div className="empty-actions">
+            <button className="primary-btn" onClick={() => inputRef.current?.click()}>
+              Pilih file EPUB
+            </button>
+            <button className="ghost-btn" onClick={onLoadSamples} disabled={importing}>
+              {importing ? 'Memuat…' : 'Baca buku sampel'}
+            </button>
+          </div>
         </div>
       ) : (
         <ul className="book-grid">
