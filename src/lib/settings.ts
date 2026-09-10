@@ -8,6 +8,7 @@ export const defaultSettings: ReaderSettings = {
   paragraphSpacing: 0.5,
   flow: 'paginated',
   maxWidth: 760,
+  grain: 0,
 }
 
 export const themePalette: Record<

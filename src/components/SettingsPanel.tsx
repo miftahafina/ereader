@@ -124,6 +124,21 @@ export function SettingsPanel({ settings, onChange }: SettingsPanelProps) {
         />
       </section>
 
+      <section className="setting-group">
+        <div className="setting-row">
+          <span className="setting-label">Tekstur kertas</span>
+          <span className="setting-value">{settings.grain}%</span>
+        </div>
+        <input
+          type="range"
+          min={0}
+          max={100}
+          step={5}
+          value={settings.grain}
+          onChange={(event) => onChange({ grain: Number(event.target.value) })}
+        />
+      </section>
+
       <button className="ghost-btn" onClick={() => onChange({ ...defaultSettings })}>
         Reset pengaturan
       </button>

@@ -326,6 +326,13 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
 
         <div className="reader-stage" style={{ maxWidth: `${stageMaxWidth}px` }}>
           <div className="reader-viewer" ref={viewerRef} />
+          {settings.grain > 0 && (
+            <div
+              className="reader-grain"
+              style={{ opacity: (settings.grain / 100) * 0.55 }}
+              aria-hidden="true"
+            />
+          )}
           {loading && <div className="reader-overlay">Memuat buku…</div>}
           {error && <div className="reader-overlay error">{error}</div>}
         </div>

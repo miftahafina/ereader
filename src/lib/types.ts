@@ -30,4 +30,5 @@ export interface ReaderSettings {
   paragraphSpacing: number
   flow: FlowMode
   maxWidth: number
+  grain: number
 }
