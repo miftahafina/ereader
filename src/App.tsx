@@ -44,7 +44,7 @@ export default function App() {
       dark: '#000000',
     }
 
-    const metaThemeColor = document.querySelector('meta[name=\'theme-color\]')
+    const metaThemeColor = document.querySelector('meta[name="theme-color"]')
     if (metaThemeColor) {
       metaThemeColor.setAttribute('content', themeColors[settings.theme] || themeColors.light)
     } else {
