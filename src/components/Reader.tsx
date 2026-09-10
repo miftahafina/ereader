@@ -2,6 +2,8 @@ import ePub from 'epubjs'
 import type { Book, Contents, Location, NavItem, Rendition } from 'epubjs'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { getBook, getProgress, saveProgress } from '../lib/db'
+import { fetchDefinition } from '../lib/dictionary'
+import type { WordDefinition } from '../lib/dictionary'
 import { literataFontFaces } from '../lib/fontFaces'
 import { fontOptions, themePalette } from '../lib/settings'
 import type { BookRecord, ReaderSettings } from '../lib/types'
@@ -18,6 +20,21 @@ interface ReaderProps {
 
 const SPREAD_MIN_WIDTH = 1000
 const SPREAD_GUTTER = 80
+
+interface WordPopup {
+  word: string
+  x: number
+  y: number
+  below: boolean
+  status: 'loading' | 'done' | 'error'
+  definition?: WordDefinition
+}
+
+function extractWord(text: string): string | null {
+  const word = text.replace(/^[^\p{L}\p{M}]+|[^\p{L}\p{M}]+$/gu, '')
+  if (!word || /\s/.test(word)) return null
+  return word
+}
 
 function buildReaderCss(settings: ReaderSettings): string {
   const palette = themePalette[settings.theme]
@@ -55,12 +72,14 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
   const [showSettings, setShowSettings] = useState(false)
   const [chromeHidden, setChromeHidden] = useState(false)
   const [bodyWidth, setBodyWidth] = useState(0)
+  const [popup, setPopup] = useState<WordPopup | null>(null)
 
   const viewerRef = useRef<HTMLDivElement>(null)
   const bodyRef = useRef<HTMLDivElement>(null)
   const renditionRef = useRef<Rendition | null>(null)
   const settingsRef = useRef(settings)
   const latestRef = useRef<{ cfi: string; percentage: number } | null>(null)
+  const popupAbortRef = useRef<AbortController | null>(null)
 
   useEffect(() => {
     settingsRef.current = settings
@@ -139,6 +158,53 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
 
       applyReaderTheme(rendition, settingsRef.current)
 
+      const handleSelected = (_cfiRange: string, contents: Contents) => {
+        const selection = contents.window.getSelection()
+        if (!selection || selection.rangeCount === 0 || selection.isCollapsed) return
+        const word = extractWord(selection.toString())
+        if (!word) {
+          setPopup(null)
+          return
+        }
+        const range = selection.getRangeAt(0)
+        const rect = range.getBoundingClientRect()
+        const frameRect = contents.window.frameElement?.getBoundingClientRect()
+        const x = rect.left + (frameRect?.left ?? 0) + rect.width / 2
+        const top = rect.top + (frameRect?.top ?? 0)
+        const below = top < 170
+
+        popupAbortRef.current?.abort()
+        const controller = new AbortController()
+        popupAbortRef.current = controller
+        setPopup({
+          word,
+          x,
+          y: below ? top + rect.height : top,
+          below,
+          status: 'loading',
+        })
+
+        void fetchDefinition(word.toLowerCase(), controller.signal)
+          .then((definition) => {
+            if (cancelled) return
+            setPopup((prev) =>
+              prev && prev.word === word
+                ? { ...prev, status: definition ? 'done' : 'error', definition: definition ?? undefined }
+                : prev,
+            )
+          })
+          .catch(() => {
+            if (cancelled || controller.signal.aborted) return
+            setPopup((prev) => (prev && prev.word === word ? { ...prev, status: 'error' } : prev))
+          })
+      }
+      rendition.on('selected', handleSelected)
+
+      const handleContentClick = () => {
+        setPopup(null)
+      }
+      rendition.on('click', handleContentClick)
+
       const saved = await getProgress(bookId)
       if (cancelled) return
       await rendition.display(saved?.cfi)
@@ -147,6 +213,7 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
 
       const handleRelocated = (location: Location) => {
         if (!location?.start) return
+        setPopup(null)
         const cfi = location.start.cfi
         const pct = typeof location.start.percentage === 'number' ? location.start.percentage : 0
         setPercentage(pct)
@@ -161,6 +228,10 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
       rendition.on('relocated', handleRelocated)
 
       const onKey = (event: KeyboardEvent) => {
+        if (event.key === 'Escape') {
+          setPopup(null)
+          return
+        }
         if (
           event.key === 'ArrowRight' ||
           event.key === 'PageDown' ||
@@ -256,6 +327,7 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
 
     return () => {
       cancelled = true
+      popupAbortRef.current?.abort()
       if (saveTimer) window.clearTimeout(saveTimer)
       if (latestRef.current) {
         void saveProgress({
@@ -281,6 +353,9 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
     void renditionRef.current?.display(href)
     setShowToc(false)
   }, [])
+
+  const popupHalf = Math.min(160, Math.max(72, (window.innerWidth - 24) / 2))
+  const popupLeft = popup ? Math.min(Math.max(popup.x, popupHalf), window.innerWidth - popupHalf) : 0
 
   return (
     <div className={`reader${chromeHidden ? ' chrome-hidden' : ''}`}>
@@ -356,6 +431,47 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
           ›
         </button>
       </footer>
+
+      {popup && (
+        <div
+          className={`word-popup${popup.below ? ' below' : ''}`}
+          style={{ left: `${popupLeft}px`, top: `${popup.y}px` }}
+          role="tooltip"
+        >
+          <div className="word-popup-head">
+            <span className="word-popup-word">{popup.word}</span>
+            {popup.status === 'done' && popup.definition?.phonetic && (
+              <span className="word-popup-phonetic">{popup.definition.phonetic}</span>
+            )}
+            <button
+              className="word-popup-close"
+              onClick={() => setPopup(null)}
+              aria-label="Tutup"
+            >
+              ×
+            </button>
+          </div>
+          {popup.status === 'loading' && (
+            <div className="word-popup-skeleton" aria-hidden="true">
+              <span className="skeleton-line" />
+              <span className="skeleton-line" />
+              <span className="skeleton-line short" />
+            </div>
+          )}
+          {popup.status === 'error' && <p className="word-popup-note">Definisi tidak ditemukan.</p>}
+          {popup.status === 'done' && popup.definition && (
+            <ul className="word-popup-list">
+              {popup.definition.definitions.map((item, index) => (
+                <li key={index}>
+                  {item.partOfSpeech && <em className="word-popup-pos">{item.partOfSpeech}</em>}
+                  <span>{item.meaning}</span>
+                  {item.example && <span className="word-popup-example">“{item.example}”</span>}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
     </div>
   )
 }
