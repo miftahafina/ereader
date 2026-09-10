@@ -45,6 +45,10 @@ function buildReaderCss(settings: ReaderSettings): string {
   return `
     ${fontFaces}
     html, body { background: ${palette.bg} !important; }
+    html, body, body * {
+      -webkit-touch-callout: none !important;
+      -webkit-tap-highlight-color: transparent !important;
+    }
     body { line-height: ${settings.lineHeight} !important; }
     body, body * { color: ${palette.text} !important; ${fontRule} }
     body p { margin-top: 0 !important; margin-bottom: ${settings.paragraphSpacing}em !important; }
@@ -80,6 +84,7 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
   const settingsRef = useRef(settings)
   const latestRef = useRef<{ cfi: string; percentage: number } | null>(null)
   const popupAbortRef = useRef<AbortController | null>(null)
+  const lastSizeRef = useRef<{ width: number; height: number } | null>(null)
 
   useEffect(() => {
     settingsRef.current = settings
@@ -115,12 +120,14 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
     let saveTimer: number | null = null
     let resizeObserver: ResizeObserver | null = null
     let handleKey: ((event: KeyboardEvent) => void) | null = null
+    let handleFullscreen: (() => void) | null = null
 
     async function init() {
       setLoading(true)
       setError(null)
       setToc([])
       setPercentage(0)
+      lastSizeRef.current = null
 
       const loaded = await getBook(bookId)
       if (cancelled) return
@@ -154,6 +161,7 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
 
       rendition.hooks.content.register((contents: Contents) => {
         void contents.addStylesheetCss(buildReaderCss(settingsRef.current), 'ereader')
+        contents.document?.addEventListener('contextmenu', (event) => event.preventDefault())
       })
 
       applyReaderTheme(rendition, settingsRef.current)
@@ -183,6 +191,10 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
           below,
           status: 'loading',
         })
+
+        if (contents.window.matchMedia('(pointer: coarse)').matches) {
+          selection.removeAllRanges()
+        }
 
         void fetchDefinition(word.toLowerCase(), controller.signal)
           .then((definition) => {
@@ -309,11 +321,29 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
       rendition.on('touchstart', onTouchStart)
       rendition.on('touchend', onTouchEnd)
 
-      resizeObserver = new ResizeObserver(() => {
+      const applyResize = (force = false) => {
         const el = viewerRef.current
-        if (el) rendition.resize(el.clientWidth, el.clientHeight)
-      })
+        if (!el) return
+        const width = el.clientWidth
+        const height = el.clientHeight
+        const last = lastSizeRef.current
+        if (
+          !force &&
+          last &&
+          Math.abs(width - last.width) < 2 &&
+          Math.abs(height - last.height) < 160
+        ) {
+          return
+        }
+        lastSizeRef.current = { width, height }
+        rendition.resize(width, height)
+      }
+
+      resizeObserver = new ResizeObserver(() => applyResize())
       if (viewerRef.current) resizeObserver.observe(viewerRef.current)
+
+      handleFullscreen = () => applyResize(true)
+      document.addEventListener('fullscreenchange', handleFullscreen)
 
       void epubBook.locations
         .generate(1200)
@@ -338,6 +368,7 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
         })
       }
       if (handleKey) document.removeEventListener('keydown', handleKey)
+      if (handleFullscreen) document.removeEventListener('fullscreenchange', handleFullscreen)
       resizeObserver?.disconnect()
       localRendition?.destroy()
       localBook?.destroy()
