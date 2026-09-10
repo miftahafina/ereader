@@ -16,8 +16,8 @@ export const themePalette: Record<
 > = {
   light: {
     bg: '#ffffff',
-    text: '#1f2328',
-    link: '#2563eb',
+    text: '#000000',
+    link: '#000000',
     muted: '#6b7280',
     surface: '#ffffff',
     border: '#e5e7eb',
