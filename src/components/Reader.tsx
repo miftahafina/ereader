@@ -159,7 +159,6 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
     }
 
     const text = activeContent.window.document.body.innerText.trim()
-    log(`Text extracted: ${text.substring(0, 20)}...`)
     if (!text) {
       log('Error: Text is empty')
       return
@@ -167,37 +166,52 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
 
     window.speechSynthesis.cancel()
 
-    const utterance = new SpeechSynthesisUtterance(text)
-    utterance.rate = settings.ttsRate
-    utterance.pitch = settings.ttsPitch
-    
-    const voices = window.speechSynthesis.getVoices()
-    log(`Voices available: ${voices.length}`)
-    
-    if (settings.ttsVoice) {
-      const selectedVoice = voices.find((v) => v.voiceURI === settings.ttsVoice)
-      if (selectedVoice) {
-        utterance.voice = selectedVoice
-        log(`Voice set: ${selectedVoice.name}`)
-      } else {
-        log('Warn: Selected voice not found, using default')
+    // Split text into smaller chunks to avoid 'synthesis-failed' on Android
+    // Splitting by sentences (roughly)
+    const chunks = text.split(/(?<=[.!?])\s+/)
+    let currentChunkIndex = 0
+
+    const speakChunk = () => {
+      if (currentChunkIndex >= chunks.length) {
+        log('All chunks finished')
+        setIsPlaying(false)
+        return
       }
+
+      const chunkText = chunks[currentChunkIndex]
+      if (!chunkText.trim()) {
+        currentChunkIndex++
+        speakChunk()
+        return
+      }
+
+      log(`Speaking chunk ${currentChunkIndex + 1}/${chunks.length}: ${chunkText.substring(0, 20)}...`)
+      
+      const utterance = new SpeechSynthesisUtterance(chunkText)
+      utterance.rate = settings.ttsRate
+      utterance.pitch = settings.ttsPitch
+      
+      const voices = window.speechSynthesis.getVoices()
+      if (settings.ttsVoice) {
+        const selectedVoice = voices.find((v) => v.voiceURI === settings.ttsVoice)
+        if (selectedVoice) utterance.voice = selectedVoice
+      }
+
+      utterance.onend = () => {
+        currentChunkIndex++
+        speakChunk()
+      }
+
+      utterance.onerror = (event) => {
+        log(`TTS Error on chunk ${currentChunkIndex}: ${event.error}`)
+        setIsPlaying(false)
+      }
+
+      window.speechSynthesis.speak(utterance)
     }
 
-    utterance.onend = () => {
-      log('Audio ended')
-      setIsPlaying(false)
-    }
-
-    utterance.onerror = (event) => {
-      log(`TTS Error: ${event.error}`)
-      setIsPlaying(false)
-    }
-
-    utteranceRef.current = utterance
-    log('Calling speechSynthesis.speak()...')
-    window.speechSynthesis.speak(utterance)
     setIsPlaying(true)
+    speakChunk()
   }, [isPlaying, settings])
 
 
