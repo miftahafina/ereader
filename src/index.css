@@ -87,11 +87,9 @@ button {
 }
 .primary-btn:hover:not(:disabled) {
   filter: brightness(1.1);
-  transform: scale(1.05);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
 }
 .primary-btn:active:not(:disabled) {
-  transform: scale(0.95);
   filter: brightness(0.9);
 }
 .primary-btn:disabled {
@@ -115,11 +113,9 @@ button {
 }
 .ghost-btn:hover {
   background: var(--surface-2);
-  transform: scale(1.02);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 .ghost-btn:active {
-  transform: scale(0.98);
 }
 
 .icon-btn {
@@ -139,7 +135,6 @@ button {
 .icon-btn.active {
   background: var(--surface);
   backdrop-filter: var(--glass-blur);
-  transform: scale(1.1);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
@@ -592,11 +587,9 @@ button {
 }
 .nav-btn:hover {
   background: var(--surface-2);
-  transform: scale(1.1);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 .nav-btn:active {
-  transform: scale(0.9);
 }
 .progress-track {
   flex: 1;
