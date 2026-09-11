@@ -167,8 +167,23 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
     window.speechSynthesis.cancel()
 
     // Split text into smaller chunks to avoid 'synthesis-failed' on Android
-    // Splitting by sentences (roughly)
-    const chunks = text.split(/(?<=[.!?])\s+/)
+    // We use a hard character limit (200 chars) to ensure stability on all devices
+    const textToSplit = text
+    const chunks: string[] = []
+    let tempText = textToSplit
+    
+    while (tempText.length > 0) {
+      if (tempText.length <= 200) {
+        chunks.push(tempText)
+        break
+      }
+      // Find the best place to split (end of sentence or space)
+      const splitIndex = tempText.slice(0, 200).lastIndexOf(' ')
+      const actualIndex = splitIndex > 100 ? splitIndex : 200
+      chunks.push(tempText.slice(0, actualIndex))
+      tempText = tempText.slice(actualIndex).trim()
+    }
+    
     let currentChunkIndex = 0
 
     const speakChunk = () => {
