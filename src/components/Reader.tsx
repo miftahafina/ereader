@@ -130,50 +130,58 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
     if (isPlaying) {
       window.speechSynthesis.cancel()
       setIsPlaying(false)
-    } else {
-      if (window.speechSynthesis.paused && utteranceRef.current) {
-        window.speechSynthesis.resume()
-        setIsPlaying(true)
-        return
-      }
-
-      const rendition = renditionRef.current
-      if (!rendition) return
-
-      const contents = rendition.getContents() as unknown as Contents[]
-      const activeContent = contents.find((c) => c.window.document.body.innerText)
-      if (!activeContent) return
-
-      const text = activeContent.window.document.body.innerText
-      if (!text) return
-
-      // Pastikan kita membatalkan pembacaan sebelumnya sebelum mulai yang baru
-      window.speechSynthesis.cancel()
-
-      const utterance = new SpeechSynthesisUtterance(text)
-      
-      utterance.rate = settings.ttsRate
-      utterance.pitch = settings.ttsPitch
-      
-      const voices = window.speechSynthesis.getVoices()
-      if (settings.ttsVoice) {
-        const selectedVoice = voices.find((v) => v.voiceURI === settings.ttsVoice)
-        if (selectedVoice) utterance.voice = selectedVoice
-      }
-
-      utterance.onend = () => {
-        setIsPlaying(false)
-      }
-
-      utterance.onerror = (event) => {
-        console.error('TTS Error:', event)
-        setIsPlaying(false)
-      }
-
-      utteranceRef.current = utterance
-      window.speechSynthesis.speak(utterance)
-      setIsPlaying(true)
+      return
     }
+
+    const rendition = renditionRef.current
+    if (!rendition) return
+
+    // 1. Trigger immediate sound to "warm up" the audio context for mobile browsers
+    // This must happen as close to the user click as possible
+    const warmUp = new SpeechSynthesisUtterance('')
+    window.speechSynthesis.speak(warmUp)
+
+    // 2. Optimize text extraction
+    const contents = rendition.getContents() as unknown as Contents[]
+    const activeContent = contents.find((c) => c.window.document.body.innerText)
+    if (!activeContent) {
+      console.error('TTS: No active content found')
+      return
+    }
+
+    const text = activeContent.window.document.body.innerText.trim()
+    if (!text) {
+      console.error('TTS: No text found in content')
+      return
+    }
+
+    window.speechSynthesis.cancel()
+
+    const utterance = new SpeechSynthesisUtterance(text)
+    utterance.rate = settings.ttsRate
+    utterance.pitch = settings.ttsPitch
+    
+    const voices = window.speechSynthesis.getVoices()
+    
+    if (settings.ttsVoice) {
+      const selectedVoice = voices.find((v) => v.voiceURI === settings.ttsVoice)
+      if (selectedVoice) {
+        utterance.voice = selectedVoice
+      }
+    }
+
+    utterance.onend = () => {
+      setIsPlaying(false)
+    }
+
+    utterance.onerror = (event) => {
+      console.error('TTS Error:', event)
+      setIsPlaying(false)
+    }
+
+    utteranceRef.current = utterance
+    window.speechSynthesis.speak(utterance)
+    setIsPlaying(true)
   }, [isPlaying, settings])
 
 
