@@ -9,6 +9,9 @@ export const defaultSettings: ReaderSettings = {
   flow: 'paginated',
   maxWidth: 760,
   grain: 0,
+  ttsRate: 1,
+  ttsPitch: 1,
+  ttsVoice: '',
 }
 
 export const themePalette: Record<

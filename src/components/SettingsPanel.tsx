@@ -16,7 +16,7 @@ export function SettingsPanel({ settings, onChange }: SettingsPanelProps) {
   return (
     <div className="settings">
       <h2 className="sidebar-title">Tampilan</h2>
-
+      
       <section className="setting-group">
         <span className="setting-label">Tema</span>
         <div className="segmented">
@@ -137,6 +137,53 @@ export function SettingsPanel({ settings, onChange }: SettingsPanelProps) {
           value={settings.grain}
           onChange={(event) => onChange({ grain: Number(event.target.value) })}
         />
+      </section>
+
+      <h2 className="sidebar-title">Audiobook</h2>
+
+      <section className="setting-group">
+        <div className="setting-row">
+          <span className="setting-label">Kecepatan</span>
+          <span className="setting-value">{settings.ttsRate}x</span>
+        </div>
+        <input
+          type="range"
+          min={0.5}
+          max={2}
+          step={0.1}
+          value={settings.ttsRate}
+          onChange={(event) => onChange({ ttsRate: Number(event.target.value) })}
+        />
+      </section>
+
+      <section className="setting-group">
+        <div className="setting-row">
+          <span className="setting-label">Nada</span>
+          <span className="setting-value">{settings.ttsPitch}</span>
+        </div>
+        <input
+          type="range"
+          min={0}
+          max={2}
+          step={0.1}
+          value={settings.ttsPitch}
+          onChange={(event) => onChange({ ttsPitch: Number(event.target.value) })}
+        />
+      </section>
+
+      <section className="setting-group">
+        <span className="setting-label">Suara</span>
+        <select
+          value={settings.ttsVoice}
+          onChange={(event) => onChange({ ttsVoice: event.target.value })}
+        >
+          <option value="">Default</option>
+          {window.speechSynthesis.getVoices().map((voice) => (
+            <option key={voice.voiceURI} value={voice.voiceURI}>
+              {voice.name} ({voice.lang})
+            </option>
+          ))}
+        </select>
       </section>
 
       <button className="ghost-btn" onClick={() => onChange({ ...defaultSettings })}>

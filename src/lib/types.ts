@@ -31,4 +31,7 @@ export interface ReaderSettings {
   flow: FlowMode
   maxWidth: number
   grain: number
+  ttsRate: number
+  ttsPitch: number
+  ttsVoice: string
 }

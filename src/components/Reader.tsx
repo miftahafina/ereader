@@ -77,6 +77,7 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
   const [chromeHidden, setChromeHidden] = useState(false)
   const [bodyWidth, setBodyWidth] = useState(0)
   const [popup, setPopup] = useState<WordPopup | null>(null)
+  const [isPlaying, setIsPlaying] = useState(false)
 
   const viewerRef = useRef<HTMLDivElement>(null)
   const bodyRef = useRef<HTMLDivElement>(null)
@@ -85,6 +86,7 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
   const latestRef = useRef<{ cfi: string; percentage: number } | null>(null)
   const popupAbortRef = useRef<AbortController | null>(null)
   const lastSizeRef = useRef<{ width: number; height: number } | null>(null)
+  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null)
 
   useEffect(() => {
     settingsRef.current = settings
@@ -112,6 +114,50 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
   const goPrev = useCallback(() => {
     void renditionRef.current?.prev()
   }, [])
+
+  const toggleTTS = useCallback(() => {
+    if (isPlaying) {
+      window.speechSynthesis.pause()
+      setIsPlaying(false)
+    } else {
+      if (window.speechSynthesis.paused) {
+        window.speechSynthesis.resume()
+        setIsPlaying(true)
+        return
+      }
+
+      const rendition = renditionRef.current
+      if (!rendition) return
+
+      // Ambil teks dari konten yang terlihat di iframe
+      const contents = rendition.getContents() as unknown as Contents[]
+      const activeContent = contents.find((c) => c.window.document.body.innerText)
+      if (!activeContent) return
+
+      const text = activeContent.window.document.body.innerText
+      if (!text) return
+
+      const utterance = new SpeechSynthesisUtterance(text)
+      
+      // Terapkan settings
+      utterance.rate = settings.ttsRate
+      utterance.pitch = settings.ttsPitch
+      
+      const voices = window.speechSynthesis.getVoices()
+      if (settings.ttsVoice) {
+        const selectedVoice = voices.find((v) => v.voiceURI === settings.ttsVoice)
+        if (selectedVoice) utterance.voice = selectedVoice
+      }
+
+      utterance.onend = () => {
+        setIsPlaying(false)
+      }
+
+      utteranceRef.current = utterance
+      window.speechSynthesis.speak(utterance)
+      setIsPlaying(true)
+    }
+  }, [isPlaying, settings])
 
   useEffect(() => {
     let cancelled = false
@@ -358,6 +404,7 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
     return () => {
       cancelled = true
       popupAbortRef.current?.abort()
+      window.speechSynthesis.cancel()
       if (saveTimer) window.clearTimeout(saveTimer)
       if (latestRef.current) {
         void saveProgress({
@@ -444,6 +491,23 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
       </div>
 
       <footer className="reader-bottom">
+        <button 
+          className={`nav-btn ${isPlaying ? 'active' : ''}`} 
+          onClick={toggleTTS} 
+          aria-label={isPlaying ? "Hentikan Audio" : "Putar Audio"}
+          style={{ padding: 0 }}
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            {isPlaying ? (
+              <rect x="6" y="6" width="12" height="12" rx="2" />
+            ) : (
+              <>
+                <path d="M11 5L6 9H2v6h4l5 4V5z" />
+                <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" />
+              </>
+            )}
+          </svg>
+        </button>
         <button className="nav-btn" onClick={goPrev} aria-label="Halaman sebelumnya">
           ‹
         </button>
