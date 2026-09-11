@@ -115,12 +115,23 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
     void renditionRef.current?.prev()
   }, [])
 
+  useEffect(() => {
+    // Pre-load voices for some browsers
+    const loadVoices = () => {
+      window.speechSynthesis.getVoices()
+    }
+    loadVoices()
+    if (window.speechSynthesis.onvoiceschanged !== undefined) {
+      window.speechSynthesis.onvoiceschanged = loadVoices
+    }
+  }, [])
+
   const toggleTTS = useCallback(() => {
     if (isPlaying) {
-      window.speechSynthesis.pause()
+      window.speechSynthesis.cancel()
       setIsPlaying(false)
     } else {
-      if (window.speechSynthesis.paused) {
+      if (window.speechSynthesis.paused && utteranceRef.current) {
         window.speechSynthesis.resume()
         setIsPlaying(true)
         return
@@ -129,7 +140,6 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
       const rendition = renditionRef.current
       if (!rendition) return
 
-      // Ambil teks dari konten yang terlihat di iframe
       const contents = rendition.getContents() as unknown as Contents[]
       const activeContent = contents.find((c) => c.window.document.body.innerText)
       if (!activeContent) return
@@ -137,9 +147,11 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
       const text = activeContent.window.document.body.innerText
       if (!text) return
 
+      // Pastikan kita membatalkan pembacaan sebelumnya sebelum mulai yang baru
+      window.speechSynthesis.cancel()
+
       const utterance = new SpeechSynthesisUtterance(text)
       
-      // Terapkan settings
       utterance.rate = settings.ttsRate
       utterance.pitch = settings.ttsPitch
       
@@ -153,11 +165,17 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
         setIsPlaying(false)
       }
 
+      utterance.onerror = (event) => {
+        console.error('TTS Error:', event)
+        setIsPlaying(false)
+      }
+
       utteranceRef.current = utterance
       window.speechSynthesis.speak(utterance)
       setIsPlaying(true)
     }
   }, [isPlaying, settings])
+
 
   useEffect(() => {
     let cancelled = false
