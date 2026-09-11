@@ -78,6 +78,12 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
   const [bodyWidth, setBodyWidth] = useState(0)
   const [popup, setPopup] = useState<WordPopup | null>(null)
   const [isPlaying, setIsPlaying] = useState(false)
+  const [debugLog, setDebugLog] = useState<string[]>([])
+
+  const log = (msg: string) => {
+    console.log(`[TTS Debug] ${msg}`)
+    setDebugLog((prev) => [...prev.slice(-4), msg])
+  }
 
   const viewerRef = useRef<HTMLDivElement>(null)
   const bodyRef = useRef<HTMLDivElement>(null)
@@ -127,31 +133,35 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
   }, [])
 
   const toggleTTS = useCallback(() => {
+    log('Toggle clicked')
     if (isPlaying) {
+      log('Stopping audio...')
       window.speechSynthesis.cancel()
       setIsPlaying(false)
       return
     }
 
     const rendition = renditionRef.current
-    if (!rendition) return
+    if (!rendition) {
+      log('Error: No rendition')
+      return
+    }
 
-    // 1. Trigger immediate sound to "warm up" the audio context for mobile browsers
-    // This must happen as close to the user click as possible
     const warmUp = new SpeechSynthesisUtterance('')
     window.speechSynthesis.speak(warmUp)
+    log('Warm-up triggered')
 
-    // 2. Optimize text extraction
     const contents = rendition.getContents() as unknown as Contents[]
     const activeContent = contents.find((c) => c.window.document.body.innerText)
     if (!activeContent) {
-      console.error('TTS: No active content found')
+      log('Error: No active content')
       return
     }
 
     const text = activeContent.window.document.body.innerText.trim()
+    log(`Text extracted: ${text.substring(0, 20)}...`)
     if (!text) {
-      console.error('TTS: No text found in content')
+      log('Error: Text is empty')
       return
     }
 
@@ -162,24 +172,30 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
     utterance.pitch = settings.ttsPitch
     
     const voices = window.speechSynthesis.getVoices()
+    log(`Voices available: ${voices.length}`)
     
     if (settings.ttsVoice) {
       const selectedVoice = voices.find((v) => v.voiceURI === settings.ttsVoice)
       if (selectedVoice) {
         utterance.voice = selectedVoice
+        log(`Voice set: ${selectedVoice.name}`)
+      } else {
+        log('Warn: Selected voice not found, using default')
       }
     }
 
     utterance.onend = () => {
+      log('Audio ended')
       setIsPlaying(false)
     }
 
     utterance.onerror = (event) => {
-      console.error('TTS Error:', event)
+      log(`TTS Error: ${event.error}`)
       setIsPlaying(false)
     }
 
     utteranceRef.current = utterance
+    log('Calling speechSynthesis.speak()...')
     window.speechSynthesis.speak(utterance)
     setIsPlaying(true)
   }, [isPlaying, settings])
@@ -545,6 +561,23 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
           ›
         </button>
       </footer>
+      {debugLog.length > 0 && (
+        <div style={{ 
+          position: 'fixed', 
+          bottom: 60, 
+          left: 10, 
+          background: 'rgba(0,0,0,0.8)', 
+          color: 'white', 
+          fontSize: '10px', 
+          padding: '5px', 
+          borderRadius: '4px', 
+          zIndex: 1000,
+          pointerEvents: 'none',
+          fontFamily: 'monospace'
+        }}>
+          {debugLog.map((log, i) => <div key={i}>{log}</div>)}
+        </div>
+      )}
 
       {settings.grain > 0 && (
         <div
