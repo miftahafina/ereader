@@ -12,6 +12,7 @@ export const defaultSettings: ReaderSettings = {
   ttsRate: 1,
   ttsPitch: 1,
   ttsVoice: '',
+  debugMode: false,
 }
 
 export const themePalette: Record<

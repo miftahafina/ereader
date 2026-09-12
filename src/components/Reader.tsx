@@ -640,23 +640,23 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
           ›
         </button>
       </footer>
-      {debugLog.length > 0 && (
-        <div style={{ 
-          position: 'fixed', 
-          bottom: 60, 
-          left: 10, 
-          background: 'rgba(0,0,0,0.8)', 
-          color: 'white', 
-          fontSize: '10px', 
-          padding: '5px', 
-          borderRadius: '4px', 
-          zIndex: 1000,
-          pointerEvents: 'none',
-          fontFamily: 'monospace'
-        }}>
-          {debugLog.map((log, i) => <div key={i}>{log}</div>)}
-        </div>
-      )}
+       {settings.debugMode && debugLog.length > 0 && (
+         <div style={{ 
+           position: 'fixed', 
+           bottom: 60, 
+           left: 10, 
+           background: 'rgba(0,0,0,0.8)', 
+           color: 'white', 
+           fontSize: '10px', 
+           padding: '5px', 
+           borderRadius: '4px', 
+           zIndex: 1000,
+           pointerEvents: 'none',
+           fontFamily: 'monospace'
+         }}>
+           {debugLog.map((log, i) => <div key={i}>{log}</div>)}
+         </div>
+       )}
 
       {settings.grain > 0 && (
         <div

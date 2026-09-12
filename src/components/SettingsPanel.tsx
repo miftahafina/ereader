@@ -139,6 +139,17 @@ export function SettingsPanel({ settings, onChange }: SettingsPanelProps) {
         />
       </section>
 
+       <section className="setting-group">
+         <div className="setting-row">
+           <span className="setting-label">Mode Debug</span>
+           <input 
+             type="checkbox" 
+             checked={settings.debugMode} 
+             onChange={(e) => onChange({ debugMode: e.target.checked })} 
+           />
+         </div>
+       </section>
+
        <h2 className="sidebar-title">Audiobook (beta)</h2>
 
       <section className="setting-group">

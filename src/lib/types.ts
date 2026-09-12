@@ -34,4 +34,5 @@ export interface ReaderSettings {
   ttsRate: number
   ttsPitch: number
   ttsVoice: string
+  debugMode: boolean
 }
