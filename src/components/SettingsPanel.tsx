@@ -139,7 +139,7 @@ export function SettingsPanel({ settings, onChange }: SettingsPanelProps) {
         />
       </section>
 
-      <h2 className="sidebar-title">Audiobook</h2>
+       <h2 className="sidebar-title">Audiobook (beta)</h2>
 
       <section className="setting-group">
         <div className="setting-row">

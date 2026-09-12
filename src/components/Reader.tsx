@@ -153,9 +153,29 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
     log('Warm-up triggered')
 
     const contents = rendition.getContents() as unknown as Contents[]
-    const activeContent = contents.find((c) => c.window.document.body.innerText)
+    
+    // Find content that is actually visible in the current viewport
+    const activeContent = contents.find((c) => {
+      const doc = c.window.document
+      const body = doc.body
+      const viewportHeight = body.clientHeight
+      const viewportWidth = body.clientWidth
+      
+      // Check if any significant element is visible
+      const elements = Array.from(doc.querySelectorAll('p, div, li, h1, h2, h3, h4, h5, h6'))
+      return elements.some(el => {
+        const rect = el.getBoundingClientRect()
+        return (
+          rect.top < viewportHeight && 
+          rect.bottom > 0 && 
+          rect.left < viewportWidth && 
+          rect.right > 0
+        )
+      })
+    })
+
     if (!activeContent) {
-      log('Error: No active content')
+      log('Error: No active content visible')
       return
     }
 
