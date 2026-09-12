@@ -186,7 +186,7 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
     window.speechSynthesis.cancel()
 
     const chunks: string[] = []
-    const MAX_CHUNK_SIZE = 250
+    const MAX_CHUNK_SIZE = 512
 
     paragraphs.forEach(p => {
       if (p.length <= MAX_CHUNK_SIZE) {
