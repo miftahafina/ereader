@@ -367,9 +367,6 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
       const handleRelocated = (location: Location) => {
         if (!location?.start) return
         setPopup(null)
-        window.speechSynthesis.cancel()
-        ttsQueueRef.current = { chunks: [], index: 0 }
-        setIsPlaying(false)
         const cfi = location.start.cfi
         const pct = typeof location.start.percentage === 'number' ? location.start.percentage : 0
         setPercentage(pct)
