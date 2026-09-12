@@ -91,23 +91,25 @@ export function SettingsPanel({ settings, onChange }: SettingsPanelProps) {
         />
       </section>
 
-      <section className="setting-group">
-        <span className="setting-label">Mode baca</span>
-        <div className="segmented">
-          <button
-            className={settings.flow === 'paginated' ? 'active' : ''}
-            onClick={() => onChange({ flow: 'paginated' })}
-          >
-            Halaman
-          </button>
-          <button
-            className={settings.flow === 'scrolled' ? 'active' : ''}
-            onClick={() => onChange({ flow: 'scrolled' })}
-          >
-            Gulir
-          </button>
-        </div>
-      </section>
+       <section className="setting-group">
+         <div className="setting-row">
+           <span className="setting-label">Mode baca</span>
+           <div className="segmented">
+             <button
+               className={settings.flow === 'paginated' ? 'active' : ''}
+               onClick={() => onChange({ flow: 'paginated' })}
+             >
+               Halaman
+             </button>
+             <button
+               className={settings.flow === 'scrolled' ? 'active' : ''}
+               onClick={() => onChange({ flow: 'scrolled' })}
+             >
+               Gulir
+             </button>
+           </div>
+         </div>
+       </section>
 
       <section className="setting-group">
         <div className="setting-row">
@@ -124,33 +126,22 @@ export function SettingsPanel({ settings, onChange }: SettingsPanelProps) {
         />
       </section>
 
-      <section className="setting-group">
-        <div className="setting-row">
-          <span className="setting-label">Tekstur kertas</span>
-          <span className="setting-value">{settings.grain}%</span>
-        </div>
-        <input
-          type="range"
-          min={0}
-          max={100}
-          step={5}
-          value={settings.grain}
-          onChange={(event) => onChange({ grain: Number(event.target.value) })}
-        />
-      </section>
-
        <section className="setting-group">
          <div className="setting-row">
-           <span className="setting-label">Mode Debug</span>
-           <input 
-             type="checkbox" 
-             checked={settings.debugMode} 
-             onChange={(e) => onChange({ debugMode: e.target.checked })} 
-           />
+           <span className="setting-label">Tekstur kertas</span>
+           <span className="setting-value">{settings.grain}%</span>
          </div>
+         <input
+           type="range"
+           min={0}
+           max={100}
+           step={5}
+           value={settings.grain}
+           onChange={(event) => onChange({ grain: Number(event.target.value) })}
+         />
        </section>
 
-       <h2 className="sidebar-title">Audiobook (beta)</h2>
+
 
       <section className="setting-group">
         <div className="setting-row">
@@ -197,9 +188,23 @@ export function SettingsPanel({ settings, onChange }: SettingsPanelProps) {
         </select>
       </section>
 
-      <button className="ghost-btn" onClick={() => onChange({ ...defaultSettings })}>
-        Reset pengaturan
-      </button>
+       <button className="ghost-btn" onClick={() => onChange({ ...defaultSettings })}>
+         Reset pengaturan
+       </button>
+
+       <h2 className="sidebar-title">DEVELOPMENT</h2>
+
+       <section className="setting-group">
+         <div className="setting-row">
+           <span className="setting-label">Mode Debug</span>
+           <input 
+             type="checkbox" 
+             checked={settings.debugMode} 
+             onChange={(e) => onChange({ debugMode: e.target.checked })} 
+           />
+         </div>
+       </section>
+
     </div>
   )
 }
