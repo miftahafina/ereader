@@ -92,6 +92,7 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
   const latestRef = useRef<{ cfi: string; percentage: number } | null>(null)
   const popupAbortRef = useRef<AbortController | null>(null)
   const lastSizeRef = useRef<{ width: number; height: number } | null>(null)
+  const ttsQueueRef = useRef<{ chunks: string[]; index: number }>({ chunks: [], index: 0 })
   
   useEffect(() => {
     settingsRef.current = settings
@@ -137,6 +138,7 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
       log('Stopping audio...')
       window.speechSynthesis.cancel()
       setIsPlaying(false)
+      ttsQueueRef.current = { chunks: [], index: 0 }
       return
     }
 
@@ -157,21 +159,32 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
       return
     }
 
-    // Extract text by paragraphs to avoid Android TTS length limits
+    // Extract only visible text
     const doc = activeContent.window.document
+    const body = doc.body
+    const viewportHeight = body.clientHeight
+    const viewportWidth = body.clientWidth
+
     const paragraphs = Array.from(doc.querySelectorAll('p, div, li, h1, h2, h3, h4, h5, h6'))
+      .filter(el => {
+        const rect = el.getBoundingClientRect()
+        return (
+          rect.top < viewportHeight && 
+          rect.bottom > 0 && 
+          rect.left < viewportWidth && 
+          rect.right > 0
+        )
+      })
       .map(el => (el as HTMLElement).innerText.trim())
       .filter(text => text.length > 0)
 
-    const text = paragraphs.join('\\n')
-    if (!text) {
-      log('Error: Text is empty')
+    if (paragraphs.length === 0) {
+      log('Error: No visible text found')
       return
     }
 
     window.speechSynthesis.cancel()
 
-    // Split into chunks: prioritize paragraphs, then split very long paragraphs
     const chunks: string[] = []
     const MAX_CHUNK_SIZE = 250
 
@@ -193,23 +206,25 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
       }
     })
     
-    let currentChunkIndex = 0
+    ttsQueueRef.current = { chunks, index: 0 }
 
     const speakChunk = () => {
-      if (currentChunkIndex >= chunks.length) {
+      const { chunks: currentChunks, index: currentIndex } = ttsQueueRef.current
+      
+      if (currentIndex >= currentChunks.length) {
         log('All chunks finished')
         setIsPlaying(false)
         return
       }
 
-      const chunkText = chunks[currentChunkIndex]
+      const chunkText = currentChunks[currentIndex]
       if (!chunkText.trim()) {
-        currentChunkIndex++
+        ttsQueueRef.current.index++
         speakChunk()
         return
       }
 
-      log(`Speaking chunk ${currentChunkIndex + 1}/${chunks.length}: ${chunkText.substring(0, 20)}...`)
+      log(`Speaking chunk ${ttsQueueRef.current.index + 1}/${currentChunks.length}: ${chunkText.substring(0, 20)}...`)
       
       const utterance = new SpeechSynthesisUtterance(chunkText)
       utterance.rate = settings.ttsRate
@@ -222,12 +237,12 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
       }
 
       utterance.onend = () => {
-        currentChunkIndex++
+        ttsQueueRef.current.index++
         speakChunk()
       }
 
       utterance.onerror = (event) => {
-        log(`TTS Error on chunk ${currentChunkIndex}: ${event.error}`)
+        log(`TTS Error on chunk ${ttsQueueRef.current.index}: ${event.error}`)
         setIsPlaying(false)
       }
 
@@ -352,6 +367,9 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
       const handleRelocated = (location: Location) => {
         if (!location?.start) return
         setPopup(null)
+        window.speechSynthesis.cancel()
+        ttsQueueRef.current = { chunks: [], index: 0 }
+        setIsPlaying(false)
         const cfi = location.start.cfi
         const pct = typeof location.start.percentage === 'number' ? location.start.percentage : 0
         setPercentage(pct)
