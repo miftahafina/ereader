@@ -92,8 +92,7 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
   const latestRef = useRef<{ cfi: string; percentage: number } | null>(null)
   const popupAbortRef = useRef<AbortController | null>(null)
   const lastSizeRef = useRef<{ width: number; height: number } | null>(null)
-  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null)
-
+  
   useEffect(() => {
     settingsRef.current = settings
   }, [settings])
@@ -158,7 +157,13 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
       return
     }
 
-    const text = activeContent.window.document.body.innerText.trim()
+    // Extract text by paragraphs to avoid Android TTS length limits
+    const doc = activeContent.window.document
+    const paragraphs = Array.from(doc.querySelectorAll('p, div, li, h1, h2, h3, h4, h5, h6'))
+      .map(el => (el as HTMLElement).innerText.trim())
+      .filter(text => text.length > 0)
+
+    const text = paragraphs.join('\\n')
     if (!text) {
       log('Error: Text is empty')
       return
@@ -166,23 +171,27 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
 
     window.speechSynthesis.cancel()
 
-    // Split text into smaller chunks to avoid 'synthesis-failed' on Android
-    // We use a hard character limit (200 chars) to ensure stability on all devices
-    const textToSplit = text
+    // Split into chunks: prioritize paragraphs, then split very long paragraphs
     const chunks: string[] = []
-    let tempText = textToSplit
-    
-    while (tempText.length > 0) {
-      if (tempText.length <= 200) {
-        chunks.push(tempText)
-        break
+    const MAX_CHUNK_SIZE = 250
+
+    paragraphs.forEach(p => {
+      if (p.length <= MAX_CHUNK_SIZE) {
+        chunks.push(p)
+      } else {
+        let tempText = p
+        while (tempText.length > 0) {
+          if (tempText.length <= MAX_CHUNK_SIZE) {
+            chunks.push(tempText)
+            break
+          }
+          const splitIndex = tempText.slice(0, MAX_CHUNK_SIZE).lastIndexOf(' ')
+          const actualIndex = splitIndex > 100 ? splitIndex : MAX_CHUNK_SIZE
+          chunks.push(tempText.slice(0, actualIndex))
+          tempText = tempText.slice(actualIndex).trim()
+        }
       }
-      // Find the best place to split (end of sentence or space)
-      const splitIndex = tempText.slice(0, 200).lastIndexOf(' ')
-      const actualIndex = splitIndex > 100 ? splitIndex : 200
-      chunks.push(tempText.slice(0, actualIndex))
-      tempText = tempText.slice(actualIndex).trim()
-    }
+    })
     
     let currentChunkIndex = 0
 
