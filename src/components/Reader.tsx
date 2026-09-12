@@ -165,7 +165,7 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
     const viewportHeight = body.clientHeight
     const viewportWidth = body.clientWidth
 
-    const paragraphs = Array.from(doc.querySelectorAll('p, div, li, h1, h2, h3, h4, h5, h6'))
+    const blocks = Array.from(doc.querySelectorAll('p, div, li, h1, h2, h3, h4, h5, h6'))
       .filter(el => {
         const rect = el.getBoundingClientRect()
         return (
@@ -175,10 +175,10 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
           rect.right > 0
         )
       })
-      .map(el => (el as HTMLElement).innerText.trim())
-      .filter(text => text.length > 0)
+      .map(el => (el as HTMLElement).innerText)
+      .filter(text => text.trim().length > 0)
 
-    if (paragraphs.length === 0) {
+    if (blocks.length === 0) {
       log('Error: No visible text found')
       return
     }
@@ -188,22 +188,28 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
     const chunks: string[] = []
     const MAX_CHUNK_SIZE = 1024
 
-    paragraphs.forEach(p => {
-      if (p.length <= MAX_CHUNK_SIZE) {
-        chunks.push(p)
-      } else {
-        let tempText = p
-        while (tempText.length > 0) {
-          if (tempText.length <= MAX_CHUNK_SIZE) {
-            chunks.push(tempText)
-            break
+    blocks.forEach(block => {
+      const lines = block.split(/\n+/)
+      lines.forEach(line => {
+        const trimmedLine = line.trim()
+        if (!trimmedLine) return
+
+        if (trimmedLine.length <= MAX_CHUNK_SIZE) {
+          chunks.push(trimmedLine)
+        } else {
+          let tempText = trimmedLine
+          while (tempText.length > 0) {
+            if (tempText.length <= MAX_CHUNK_SIZE) {
+              chunks.push(tempText)
+              break
+            }
+            const splitIndex = tempText.slice(0, MAX_CHUNK_SIZE).lastIndexOf(' ')
+            const actualIndex = splitIndex > 100 ? splitIndex : MAX_CHUNK_SIZE
+            chunks.push(tempText.slice(0, actualIndex))
+            tempText = tempText.slice(actualIndex).trim()
           }
-          const splitIndex = tempText.slice(0, MAX_CHUNK_SIZE).lastIndexOf(' ')
-          const actualIndex = splitIndex > 100 ? splitIndex : MAX_CHUNK_SIZE
-          chunks.push(tempText.slice(0, actualIndex))
-          tempText = tempText.slice(actualIndex).trim()
         }
-      }
+      })
     })
     
     ttsQueueRef.current = { chunks, index: 0 }
