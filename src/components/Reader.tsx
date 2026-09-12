@@ -599,6 +599,7 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
         )}
 
         <div className="reader-stage" style={{ maxWidth: `${stageMaxWidth}px` }}>
+          <div className="reader-spine" />
           <div className="reader-viewer" ref={viewerRef} />
           {loading && <div className="reader-overlay">Memuat buku…</div>}
           {error && <div className="reader-overlay error">{error}</div>}
