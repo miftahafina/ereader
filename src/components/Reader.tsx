@@ -52,7 +52,7 @@ function buildReaderCss(settings: ReaderSettings): string {
     body { line-height: ${settings.lineHeight} !important; }
     body, body * { color: ${palette.text} !important; ${fontRule} }
     body p { margin-top: 0 !important; margin-bottom: ${settings.paragraphSpacing}em !important; }
-    a, a * { color: ${palette.text} !important; text-decoration: underline; }
+    a, a * { color: ${palette.text} !important; text-decoration: none !important; }
   `
 }
 
