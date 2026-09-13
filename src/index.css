@@ -456,6 +456,26 @@ button {
   text-align: left;
   transition: all 0.2s ease;
 }
+
+.word-popup.mobile {
+  left: 0 !important;
+  right: 0 !important;
+  top: auto !important;
+  bottom: 0 !important;
+  transform: none !important;
+  width: 100% !important;
+  max-width: none !important;
+  border-radius: var(--radius-md) var(--radius-md) 0 0 !important;
+  padding: 20px 20px 32px;
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.1);
+  animation: slide-up 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+@keyframes slide-up {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
 .word-popup.below {
   transform: translate(-50%, 10px);
 }

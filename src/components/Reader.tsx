@@ -671,8 +671,8 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
 
       {popup && (
         <div
-          className={`word-popup${popup.below ? ' below' : ''}`}
-          style={{ left: `${popupLeft}px`, top: `${popup.y}px` }}
+          className={`word-popup${window.matchMedia('(pointer: coarse)').matches ? ' mobile' : ''}${popup.below ? ' below' : ''}`}
+          style={window.matchMedia('(pointer: coarse)').matches ? {} : { left: `${popupLeft}px`, top: `${popup.y}px` }}
           role="tooltip"
         >
           <div className="word-popup-head">
