@@ -658,6 +658,33 @@ button {
 }
 .nav-btn:active {
 }
+.nav-btn.translating {
+  position: relative;
+  overflow: hidden;
+}
+.nav-btn.translating::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    115deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.55) 50%,
+    transparent 70%
+  );
+  background-size: 250% 100%;
+  animation: btn-shine 1.1s linear infinite;
+  pointer-events: none;
+}
+@keyframes btn-shine {
+  from {
+    background-position: 130% 0;
+  }
+  to {
+    background-position: -130% 0;
+  }
+}
 .progress-track {
   flex: 1;
   height: 6px;
