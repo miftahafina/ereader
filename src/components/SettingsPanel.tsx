@@ -1,4 +1,5 @@
 import { defaultSettings, fontOptions } from '../lib/settings'
+import { translateLanguageOptions } from '../lib/translate'
 import type { ReaderSettings, ReaderTheme } from '../lib/types'
 
 interface SettingsPanelProps {
@@ -141,6 +142,21 @@ export function SettingsPanel({ settings, onChange }: SettingsPanelProps) {
          />
        </section>
 
+       <h2 className="sidebar-title">Terjemahan</h2>
+
+       <section className="setting-group">
+         <span className="setting-label">Bahasa tujuan</span>
+         <select
+           value={settings.translateTo}
+           onChange={(event) => onChange({ translateTo: event.target.value })}
+         >
+           {translateLanguageOptions.map((option) => (
+             <option key={option.value} value={option.value}>
+               {option.label}
+             </option>
+           ))}
+         </select>
+       </section>
 
 
        <h2 className="sidebar-title">Audiobook (beta)</h2>

@@ -12,6 +12,7 @@ export const defaultSettings: ReaderSettings = {
   ttsRate: 1,
   ttsPitch: 1,
   ttsVoice: '',
+  translateTo: 'id',
   debugMode: false,
 }
 

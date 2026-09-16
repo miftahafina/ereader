@@ -4,6 +4,16 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { getBook, getProgress, saveProgress } from '../lib/db'
 import { fetchDefinition } from '../lib/dictionary'
 import type { WordDefinition } from '../lib/dictionary'
+import { fetchTranslations } from '../lib/translate'
+import {
+  applyTranslation,
+  collectSectionBlocks,
+  expandContents,
+  findCurrentContents,
+  isTranslated,
+  pruneOriginals,
+  restoreTranslations,
+} from '../lib/translate-dom'
 import { literataFontFaces } from '../lib/fontFaces'
 import { fontOptions, themePalette } from '../lib/settings'
 import type { BookRecord, ReaderSettings } from '../lib/types'
@@ -29,6 +39,8 @@ interface WordPopup {
   status: 'loading' | 'done' | 'error'
   definition?: WordDefinition
 }
+
+type TranslateState = 'idle' | 'loading' | 'done' | 'error'
 
 function extractWord(text: string): string | null {
   const word = text.replace(/^[^\p{L}\p{M}]+|[^\p{L}\p{M}]+$/gu, '')
@@ -77,6 +89,8 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
   const [chromeHidden, setChromeHidden] = useState(false)
   const [bodyWidth, setBodyWidth] = useState(0)
   const [popup, setPopup] = useState<WordPopup | null>(null)
+  const [translateState, setTranslateState] = useState<TranslateState>('idle')
+  const [note, setNote] = useState<string | null>(null)
   const [isPlaying, setIsPlaying] = useState(false)
   const [debugLog, setDebugLog] = useState<string[]>([])
 
@@ -91,12 +105,22 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
   const settingsRef = useRef(settings)
   const latestRef = useRef<{ cfi: string; percentage: number } | null>(null)
   const popupAbortRef = useRef<AbortController | null>(null)
+  const translationAbortRef = useRef<AbortController | null>(null)
+  const translationOriginalsRef = useRef<Map<HTMLElement, string>>(new Map())
+  const translationActiveRef = useRef(false)
+  const translationStateRef = useRef<TranslateState>('idle')
+  const currentSectionRef = useRef<number | null>(null)
+  const translationRunRef = useRef(0)
   const lastSizeRef = useRef<{ width: number; height: number } | null>(null)
   const ttsQueueRef = useRef<{ chunks: string[]; index: number }>({ chunks: [], index: 0 })
   
   useEffect(() => {
     settingsRef.current = settings
   }, [settings])
+
+  useEffect(() => {
+    translationStateRef.current = translateState
+  }, [translateState])
 
   useEffect(() => {
     const el = bodyRef.current
@@ -279,6 +303,89 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
     speakChunk()
   }, [isPlaying, settings])
 
+  const reflowSection = useCallback((contents: Contents) => {
+    window.requestAnimationFrame(() => {
+      expandContents(contents)
+      window.setTimeout(() => {
+        void renditionRef.current?.reportLocation()
+      }, 80)
+    })
+  }, [])
+
+  const runSectionTranslation = useCallback(async () => {
+    const rendition = renditionRef.current
+    if (!rendition) return
+    const contents = findCurrentContents(rendition)
+    if (!contents) {
+      setTranslateState('error')
+      return
+    }
+    const blocks = collectSectionBlocks(contents.window.document)
+    if (blocks.length === 0) {
+      setTranslateState('error')
+      return
+    }
+    currentSectionRef.current = contents.sectionIndex
+
+    if (blocks.every((block) => isTranslated(block))) {
+      setTranslateState('done')
+      return
+    }
+
+    const runId = ++translationRunRef.current
+    translationAbortRef.current?.abort()
+    const controller = new AbortController()
+    translationAbortRef.current = controller
+    setTranslateState('loading')
+
+    const texts = blocks.map((block) => (block.textContent ?? '').trim())
+    const results = await fetchTranslations(
+      texts,
+      settingsRef.current.translateTo,
+      controller.signal,
+    )
+    if (controller.signal.aborted || runId !== translationRunRef.current) return
+
+    let failed = 0
+    results.forEach((result, index) => {
+      if (result) {
+        applyTranslation(blocks[index], result.translated, translationOriginalsRef.current)
+      } else {
+        failed += 1
+      }
+    })
+    pruneOriginals(translationOriginalsRef.current)
+
+    reflowSection(contents)
+    setTranslateState(failed === results.length ? 'error' : 'done')
+    if (failed > 0) {
+      setNote('Sebagian teks gagal diterjemahkan.')
+      window.setTimeout(() => setNote(null), 4000)
+    }
+  }, [reflowSection])
+
+  const stopTranslation = useCallback(() => {
+    translationRunRef.current += 1
+    translationAbortRef.current?.abort()
+    const rendition = renditionRef.current
+    if (rendition) {
+      restoreTranslations(rendition, translationOriginalsRef.current)
+    } else {
+      translationOriginalsRef.current.clear()
+    }
+    translationActiveRef.current = false
+    setTranslateState('idle')
+  }, [])
+
+  const toggleTranslate = useCallback(() => {
+    if (translateState === 'loading' || translateState === 'done') {
+      stopTranslation()
+      return
+    }
+    translationActiveRef.current = true
+    void runSectionTranslation()
+  }, [translateState, stopTranslation, runSectionTranslation])
+
 
   useEffect(() => {
     let cancelled = false
@@ -402,6 +509,16 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
         saveTimer = window.setTimeout(() => {
           void saveProgress({ id: bookId, cfi, percentage: pct, updatedAt: Date.now() })
         }, 600)
+        const sectionIndex = typeof location.start.index === 'number' ? location.start.index : null
+        if (
+          translationActiveRef.current &&
+          translationStateRef.current === 'done' &&
+          sectionIndex !== null &&
+          sectionIndex !== currentSectionRef.current
+        ) {
+          currentSectionRef.current = sectionIndex
+          void runSectionTranslation()
+        }
       }
 
       rendition.on('relocated', handleRelocated)
@@ -525,6 +642,7 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
     return () => {
       cancelled = true
       popupAbortRef.current?.abort()
+      translationAbortRef.current?.abort()
       window.speechSynthesis.cancel()
       if (saveTimer) window.clearTimeout(saveTimer)
       if (latestRef.current) {
@@ -542,7 +660,7 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
       localBook?.destroy()
       renditionRef.current = null
     }
-  }, [bookId, settings.flow])
+  }, [bookId, settings.flow, runSectionTranslation])
 
   useEffect(() => {
     if (renditionRef.current) applyReaderTheme(renditionRef.current, settings)
@@ -615,6 +733,18 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
       </div>
 
       <footer className="reader-bottom">
+        <button
+          className={`nav-btn ${translateState !== 'idle' ? 'active' : ''}`}
+          onClick={toggleTranslate}
+          aria-label="Terjemahkan bagian ini"
+          style={{ padding: 0 }}
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M2 12h20" />
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+          </svg>
+        </button>
         <button 
           className={`nav-btn ${isPlaying ? 'active' : ''}`} 
           onClick={toggleTTS} 
@@ -709,6 +839,8 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
           )}
         </div>
       )}
+
+      {note && <div className="reader-note">{note}</div>}
     </div>
   )
 }
