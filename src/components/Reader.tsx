@@ -740,7 +740,7 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
           style={{ padding: 0 }}
         >
           <img
-            src="/translate-icon.png"
+            src={translateState === 'idle' ? '/translate-icon-black.png' : '/translate-icon-white.png'}
             alt=""
             width={20}
             height={20}
