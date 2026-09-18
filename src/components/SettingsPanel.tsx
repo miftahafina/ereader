@@ -64,6 +64,21 @@ export function SettingsPanel({ settings, onChange }: SettingsPanelProps) {
 
       <section className="setting-group">
         <div className="setting-row">
+          <span className="setting-label">Transparansi teks</span>
+          <span className="setting-value">{settings.fontOpacity}%</span>
+        </div>
+        <input
+          type="range"
+          min={10}
+          max={100}
+          step={5}
+          value={settings.fontOpacity}
+          onChange={(event) => onChange({ fontOpacity: Number(event.target.value) })}
+        />
+      </section>
+
+      <section className="setting-group">
+        <div className="setting-row">
           <span className="setting-label">Jarak baris</span>
           <span className="setting-value">{settings.lineHeight.toFixed(1)}</span>
         </div>

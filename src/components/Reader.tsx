@@ -62,6 +62,7 @@ function buildReaderCss(settings: ReaderSettings): string {
       -webkit-tap-highlight-color: transparent !important;
     }
     body { line-height: ${settings.lineHeight} !important; }
+    body { opacity: ${settings.fontOpacity / 100} !important; }
     body, body * { color: ${palette.text} !important; ${fontRule} }
     body p { margin-top: 0 !important; margin-bottom: ${settings.paragraphSpacing}em !important; }
     a, a * { color: ${palette.text} !important; text-decoration: none !important; }
@@ -740,7 +741,11 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
           style={{ padding: 0 }}
         >
           <img
-            src={translateState === 'idle' ? '/translate-icon-black.png' : '/translate-icon-white.png'}
+            src={
+              translateState === 'idle' && settings.theme !== 'dark'
+                ? '/translate-icon-black.png'
+                : '/translate-icon-white.png'
+            }
             alt=""
             width={20}
             height={20}

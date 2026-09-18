@@ -4,6 +4,7 @@ export const defaultSettings: ReaderSettings = {
   theme: 'light',
   fontSize: 100,
   fontFamily: 'literata',
+  fontOpacity: 100,
   lineHeight: 1.6,
   paragraphSpacing: 0.5,
   flow: 'paginated',

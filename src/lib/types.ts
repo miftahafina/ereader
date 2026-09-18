@@ -26,6 +26,7 @@ export interface ReaderSettings {
   theme: ReaderTheme
   fontSize: number
   fontFamily: string
+  fontOpacity: number
   lineHeight: number
   paragraphSpacing: number
   flow: FlowMode
