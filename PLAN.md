@@ -60,7 +60,7 @@ File .epub (drag & drop)
 - [x] Simpan & lanjutkan posisi baca (CFI), flush saat keluar
 - [x] Tema terang/sepia/gelap
 - [x] Font Literata sebagai default + opsi font lain
-- [x] Ukuran huruf, jarak baris, jarak antar paragraf, lebar kolom
+- [x] Ukuran huruf, jarak baris, jarak antar paragraf, rata teks, lebar kolom
 - [x] Mode halaman / gulir
 - [x] Layout 2 kolom otomatis di desktop/tablet landscape
 - [x] Tombol volume (best-effort) & toggle toolbar via tap tengah

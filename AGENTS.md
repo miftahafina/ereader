@@ -38,7 +38,7 @@ src/
     db.ts                  IndexedDB: store `books` & `progress`
     epub.ts                ekstraksi metadata + sampul dari file EPUB
     samples.ts             manifest buku sampel bawaan (public domain)
-    settings.ts            default, palette tema, opsi font, persist localStorage
+    settings.ts            default, palette tema, opsi font & rata teks, persist localStorage
     fontFaces.ts           @font-face Literata (URL absolut) untuk iframe
   hooks/
     useFileDrop.ts         deteksi drag & drop file level window
@@ -66,7 +66,7 @@ wrangler.jsonc             konfigurasi deploy Pages
 ## Catatan penting epub.js (jangan diubah tanpa alasan)
 
 - Isi buku dirender di `<iframe srcdoc sandbox="allow-same-origin">`. CSS/font dari dokumen induk **tidak** otomatis tembus ke iframe.
-- Tema & font disuntik lewat **content hook** `rendition.hooks.content.register(...)` + `contents.addStylesheetCss(css, 'ereader')` (lihat `buildReaderCss`/`applyReaderTheme` di `Reader.tsx`). Jangan hanya pakai `themes.registerCss` + `select` — epub.js melewati tema `serialized` saat konten pertama dimuat.
+- Tema, font, & rata teks disuntik lewat **content hook** `rendition.hooks.content.register(...)` + `contents.addStylesheetCss(css, 'ereader')` (lihat `buildReaderCss`/`applyReaderTheme` di `Reader.tsx`). Jangan hanya pakai `themes.registerCss` + `select` — epub.js melewati tema `serialized` saat konten pertama dimuat. Rata teks `default` tidak menimpa gaya asli EPUB (rule `text-align` hanya disuntik bila bukan `default`).
 - Font di iframe butuh `@font-face` dengan URL absolut (`src/lib/fontFaces.ts`).
 - Koordinat event yang diteruskan dari iframe (mis. `click`) relatif terhadap viewport iframe yang **lebih lebar dari layar** (konten kolom). Untuk tap zone, konversi dengan `frame.getBoundingClientRect()` dikurangi rect `.reader-viewer` (lihat `onTap`).
 - Layout 2 kolom (spread) aktif otomatis bila lebar area baca ≥ `SPREAD_MIN_WIDTH` (1000px) dan mode `paginated`. `stageMaxWidth` dihitung di `Reader.tsx`.

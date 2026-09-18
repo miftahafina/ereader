@@ -1,4 +1,4 @@
-import type { ReaderSettings, ReaderTheme } from './types'
+import type { ReaderSettings, ReaderTheme, TextAlign } from './types'
 
 export const defaultSettings: ReaderSettings = {
   theme: 'light',
@@ -8,6 +8,7 @@ export const defaultSettings: ReaderSettings = {
   lineHeight: 1.6,
   paragraphSpacing: 0.5,
   flow: 'paginated',
+  textAlign: 'default',
   maxWidth: 760,
   grain: 0,
   ttsRate: 1,
@@ -57,6 +58,14 @@ export const fontOptions: { value: string; label: string; stack: string }[] = [
     stack: 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
   },
   { value: 'mono', label: 'Monospace', stack: 'ui-monospace, "SFMono-Regular", Menlo, monospace' },
+]
+
+export const textAlignOptions: { value: TextAlign; label: string }[] = [
+  { value: 'default', label: 'Bawaan' },
+  { value: 'left', label: 'Kiri' },
+  { value: 'center', label: 'Tengah' },
+  { value: 'right', label: 'Kanan' },
+  { value: 'justify', label: 'Rata' },
 ]
 
 const STORAGE_KEY = 'ereader-web:settings'

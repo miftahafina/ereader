@@ -22,6 +22,8 @@ export type ReaderTheme = 'light' | 'sepia' | 'dark'
 
 export type FlowMode = 'paginated' | 'scrolled'
 
+export type TextAlign = 'default' | 'left' | 'center' | 'right' | 'justify'
+
 export interface ReaderSettings {
   theme: ReaderTheme
   fontSize: number
@@ -30,6 +32,7 @@ export interface ReaderSettings {
   lineHeight: number
   paragraphSpacing: number
   flow: FlowMode
+  textAlign: TextAlign
   maxWidth: number
   grain: number
   ttsRate: number

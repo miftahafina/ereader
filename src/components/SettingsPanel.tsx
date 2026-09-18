@@ -1,6 +1,6 @@
-import { defaultSettings, fontOptions } from '../lib/settings'
+import { defaultSettings, fontOptions, textAlignOptions } from '../lib/settings'
 import { translateLanguageOptions } from '../lib/translate'
-import type { ReaderSettings, ReaderTheme } from '../lib/types'
+import type { ReaderSettings, ReaderTheme, TextAlign } from '../lib/types'
 
 interface SettingsPanelProps {
   settings: ReaderSettings
@@ -12,6 +12,33 @@ const themes: { value: ReaderTheme; label: string }[] = [
   { value: 'sepia', label: 'Sepia' },
   { value: 'dark', label: 'Gelap' },
 ]
+
+function AlignIcon({ value }: { value: TextAlign }) {
+  const lines = {
+    left: ['M4 6h16', 'M4 12h10', 'M4 18h14'],
+    center: ['M4 6h16', 'M7 12h10', 'M5 18h14'],
+    right: ['M4 6h16', 'M10 12h10', 'M6 18h14'],
+    justify: ['M4 6h16', 'M4 12h16', 'M4 18h16'],
+    default: ['M4 6h16', 'M8 12h12', 'M6 18h14'],
+  }[value]
+
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      aria-hidden="true"
+    >
+      {lines.map((d, index) => (
+        <path key={index} d={d} />
+      ))}
+    </svg>
+  )
+}
 
 export function SettingsPanel({ settings, onChange }: SettingsPanelProps) {
   return (
@@ -105,6 +132,23 @@ export function SettingsPanel({ settings, onChange }: SettingsPanelProps) {
           value={settings.paragraphSpacing}
           onChange={(event) => onChange({ paragraphSpacing: Number(event.target.value) })}
         />
+      </section>
+
+       <section className="setting-group">
+        <span className="setting-label">Rata teks</span>
+        <div className="segmented">
+          {textAlignOptions.map((option) => (
+            <button
+              key={option.value}
+              className={settings.textAlign === option.value ? 'active' : ''}
+              onClick={() => onChange({ textAlign: option.value })}
+              aria-label={option.label}
+              title={option.label}
+            >
+              <AlignIcon value={option.value} />
+            </button>
+          ))}
+        </div>
       </section>
 
        <section className="setting-group">

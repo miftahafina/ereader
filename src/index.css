@@ -790,12 +790,16 @@ button {
   flex: 1;
   border: none;
   background: transparent;
-  padding: 6px 4px;
+  padding: 6px;
   cursor: pointer;
   font-size: 13px;
   border-radius: calc(var(--radius-md) - 2px);
   transition: all 0.2s ease;
   color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
 }
 .segmented button.active {
   background: var(--surface);

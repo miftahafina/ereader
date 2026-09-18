@@ -11,7 +11,7 @@ Pembaca EPUB yang berjalan **sepenuhnya di browser**. Cukup seret (drag & drop) 
 - Simpan & lanjutkan posisi baca (CFI)
 - Tema: terang, sepia, gelap
 - Font **Literata** default, plus opsi font lain
-- Pengaturan: ukuran huruf, jarak baris, jarak antar paragraf, lebar kolom, mode halaman/gulir, bahasa tujuan terjemahan
+- Pengaturan: ukuran huruf, jarak baris, jarak antar paragraf, rata teks (bawaan/kiri/tengah/kanan/rata), lebar kolom, mode halaman/gulir, bahasa tujuan terjemahan
 - Layout **2 kolom** otomatis di desktop/tablet landscape
 - Navigasi mobile: tap kiri/kanan, swipe, tap tengah untuk sembunyikan toolbar, tombol volume (best-effort)
 - Layar penuh (Fullscreen API) di perpustakaan & reader

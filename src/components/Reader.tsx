@@ -53,6 +53,10 @@ function buildReaderCss(settings: ReaderSettings): string {
   const font = fontOptions.find((option) => option.value === settings.fontFamily)
   const fontRule = font?.stack ? `font-family: ${font.stack} !important;` : ''
   const fontFaces = settings.fontFamily === 'literata' ? literataFontFaces() : ''
+  const alignRule =
+    settings.textAlign === 'default'
+      ? ''
+      : `body, body * { text-align: ${settings.textAlign} !important; }`
 
   return `
     ${fontFaces}
@@ -65,6 +69,7 @@ function buildReaderCss(settings: ReaderSettings): string {
     body { opacity: ${settings.fontOpacity / 100} !important; }
     body, body * { color: ${palette.text} !important; ${fontRule} }
     body p { margin-top: 0 !important; margin-bottom: ${settings.paragraphSpacing}em !important; }
+    ${alignRule}
     a, a * { color: ${palette.text} !important; text-decoration: none !important; }
   `
 }
