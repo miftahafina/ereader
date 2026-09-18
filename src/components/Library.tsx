@@ -111,6 +111,14 @@ export function Library({
           })}
         </ul>
       )}
+
+      <footer className="library-footer">
+        Oleh{' '}
+        <a href="https://miftahafina.com" target="_blank" rel="noopener noreferrer">
+          Miftah Afina
+        </a>{' '}
+        dengan Big Pickle melalui OpenCode
+      </footer>
     </div>
   )
 }
