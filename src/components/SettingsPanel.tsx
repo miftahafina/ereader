@@ -14,12 +14,29 @@ const themes: { value: ReaderTheme; label: string }[] = [
 ]
 
 function AlignIcon({ value }: { value: TextAlign }) {
+  if (value === 'default') {
+    return (
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden="true"
+      >
+        <rect x="3" y="3" width="18" height="18" rx="6" />
+      </svg>
+    )
+  }
+
   const lines = {
     left: ['M4 6h16', 'M4 12h10', 'M4 18h14'],
     center: ['M4 6h16', 'M7 12h10', 'M5 18h14'],
     right: ['M4 6h16', 'M10 12h10', 'M6 18h14'],
     justify: ['M4 6h16', 'M4 12h16', 'M4 18h16'],
-    default: ['M4 6h16', 'M8 12h12', 'M6 18h14'],
   }[value]
 
   return (

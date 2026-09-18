@@ -612,6 +612,9 @@ button {
   letter-spacing: 0.08em;
   color: var(--text-muted);
 }
+.settings > .sidebar-title:not(:first-child) {
+  margin: 26px 0 6px;
+}
 
 .reader-bottom {
   display: flex;
