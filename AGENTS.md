@@ -66,6 +66,7 @@ wrangler.jsonc             konfigurasi deploy Pages
 ## Catatan penting epub.js (jangan diubah tanpa alasan)
 
 - Isi buku dirender di `<iframe srcdoc sandbox="allow-same-origin">`. CSS/font dari dokumen induk **tidak** otomatis tembus ke iframe.
+- **Safari/WebKit** tidak meneruskan event `selectionchange`/`mouseup` ke iframe `sandbox="allow-same-origin"` tanpa `allow-scripts`. Karena popup kamus bergantung pada event `selected` epub.js, `allowScriptedContent` aktif **khusus WebKit** (`IS_WEBKIT` di `Reader.tsx`); browser lain tetap `false` demi keamanan konten.
 - Tema, font, & rata teks disuntik lewat **content hook** `rendition.hooks.content.register(...)` + `contents.addStylesheetCss(css, 'ereader')` (lihat `buildReaderCss`/`applyReaderTheme` di `Reader.tsx`). Jangan hanya pakai `themes.registerCss` + `select` — epub.js melewati tema `serialized` saat konten pertama dimuat. Rata teks `default` tidak menimpa gaya asli EPUB (rule `text-align` hanya disuntik bila bukan `default`).
 - Font di iframe butuh `@font-face` dengan URL absolut (`src/lib/fontFaces.ts`).
 - Koordinat event yang diteruskan dari iframe (mis. `click`) relatif terhadap viewport iframe yang **lebih lebar dari layar** (konten kolom). Untuk tap zone, konversi dengan `frame.getBoundingClientRect()` dikurangi rect `.reader-viewer` (lihat `onTap`).

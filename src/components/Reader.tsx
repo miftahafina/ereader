@@ -31,6 +31,8 @@ interface ReaderProps {
 const SPREAD_MIN_WIDTH = 1000
 const SPREAD_GUTTER = 80
 
+const IS_WEBKIT = navigator.vendor === 'Apple Computer, Inc.'
+
 interface WordPopup {
   word: string
   x: number
@@ -434,7 +436,7 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
         flow: settingsRef.current.flow === 'scrolled' ? 'scrolled-doc' : 'paginated',
         spread: 'auto',
         minSpreadWidth: SPREAD_MIN_WIDTH,
-        allowScriptedContent: false,
+        allowScriptedContent: IS_WEBKIT,
       })
       localRendition = rendition
       renditionRef.current = rendition
