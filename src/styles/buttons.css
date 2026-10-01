@@ -26,6 +26,10 @@
 .ghost-btn {
   width: 100%;
   margin-top: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   border: 1px solid var(--border);
   background: var(--surface);
   backdrop-filter: var(--glass-blur);

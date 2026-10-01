@@ -9,6 +9,7 @@ import {
   SettingRow,
   SliderSetting,
 } from './SettingsControls'
+import { SettingIcon } from './SettingsIcon'
 
 interface SettingsPanelProps {
   settings: ReaderSettings
@@ -86,7 +87,7 @@ export function SettingsPanel({ settings, onChange }: SettingsPanelProps) {
     <div className="settings">
       <h2 className="sidebar-title">Tampilan</h2>
 
-      <SettingGroup label="Tema">
+      <SettingGroup label="Tema" icon="theme">
         <SegmentedControl
           options={themeOptions}
           value={settings.theme}
@@ -96,6 +97,7 @@ export function SettingsPanel({ settings, onChange }: SettingsPanelProps) {
 
       <SliderSetting
         label="Ukuran huruf"
+        icon="fontSize"
         display={`${settings.fontSize}%`}
         min={70}
         max={200}
@@ -106,6 +108,7 @@ export function SettingsPanel({ settings, onChange }: SettingsPanelProps) {
 
       <SelectSetting
         label="Jenis huruf"
+        icon="fontFamily"
         value={settings.fontFamily}
         options={fontOptions}
         onChange={(fontFamily) => onChange({ fontFamily })}
@@ -113,6 +116,7 @@ export function SettingsPanel({ settings, onChange }: SettingsPanelProps) {
 
       <SliderSetting
         label="Transparansi teks"
+        icon="opacity"
         display={`${settings.fontOpacity}%`}
         min={10}
         max={100}
@@ -123,6 +127,7 @@ export function SettingsPanel({ settings, onChange }: SettingsPanelProps) {
 
       <SliderSetting
         label="Jarak baris"
+        icon="lineHeight"
         display={settings.lineHeight.toFixed(1)}
         min={1.2}
         max={2.4}
@@ -133,6 +138,7 @@ export function SettingsPanel({ settings, onChange }: SettingsPanelProps) {
 
       <SliderSetting
         label="Jarak antar paragraf"
+        icon="paragraph"
         display={`${settings.paragraphSpacing.toFixed(1)}em`}
         min={0}
         max={2}
@@ -141,7 +147,7 @@ export function SettingsPanel({ settings, onChange }: SettingsPanelProps) {
         onChange={(paragraphSpacing) => onChange({ paragraphSpacing })}
       />
 
-      <SettingGroup label="Rata teks">
+      <SettingGroup label="Rata teks" icon="align">
         <SegmentedControl
           options={alignOptions}
           value={settings.textAlign}
@@ -149,7 +155,7 @@ export function SettingsPanel({ settings, onChange }: SettingsPanelProps) {
         />
       </SettingGroup>
 
-      <SettingRow label="Mode baca">
+      <SettingRow label="Mode baca" icon="flow">
         <SegmentedControl
           options={flowOptions}
           value={settings.flow}
@@ -159,6 +165,7 @@ export function SettingsPanel({ settings, onChange }: SettingsPanelProps) {
 
       <SliderSetting
         label="Lebar kolom"
+        icon="width"
         display={`${settings.maxWidth}px`}
         min={480}
         max={1200}
@@ -169,6 +176,7 @@ export function SettingsPanel({ settings, onChange }: SettingsPanelProps) {
 
       <SliderSetting
         label="Tekstur kertas"
+        icon="grain"
         display={`${settings.grain}%`}
         min={0}
         max={100}
@@ -181,6 +189,7 @@ export function SettingsPanel({ settings, onChange }: SettingsPanelProps) {
 
       <SelectSetting
         label="Bahasa tujuan"
+        icon="language"
         value={settings.translateTo}
         options={translateLanguageOptions}
         onChange={(translateTo) => onChange({ translateTo })}
@@ -190,6 +199,7 @@ export function SettingsPanel({ settings, onChange }: SettingsPanelProps) {
 
       <SliderSetting
         label="Kecepatan"
+        icon="speed"
         display={`${settings.ttsRate}x`}
         min={0.5}
         max={2}
@@ -200,6 +210,7 @@ export function SettingsPanel({ settings, onChange }: SettingsPanelProps) {
 
       <SliderSetting
         label="Nada"
+        icon="pitch"
         display={`${settings.ttsPitch}`}
         min={0}
         max={2}
@@ -210,6 +221,7 @@ export function SettingsPanel({ settings, onChange }: SettingsPanelProps) {
 
       <SelectSetting
         label="Suara"
+        icon="voice"
         value={settings.ttsVoice}
         options={voiceOptions}
         onChange={(ttsVoice) => onChange({ ttsVoice })}
@@ -217,7 +229,7 @@ export function SettingsPanel({ settings, onChange }: SettingsPanelProps) {
 
       <h2 className="sidebar-title">DEVELOPMENT</h2>
 
-      <SettingRow label="Mode Debug">
+      <SettingRow label="Mode Debug" icon="debug">
         <input
           type="checkbox"
           checked={settings.debugMode}
@@ -226,6 +238,7 @@ export function SettingsPanel({ settings, onChange }: SettingsPanelProps) {
       </SettingRow>
 
       <button className="ghost-btn" onClick={() => onChange({ ...defaultSettings })}>
+        <SettingIcon name="reset" />
         Reset pengaturan
       </button>
     </div>

@@ -1,19 +1,49 @@
 import type { ReactNode } from 'react'
+import { SettingIcon, type SettingIconName } from './SettingsIcon'
 
-export function SettingGroup({ label, children }: { label?: string; children: ReactNode }) {
+function Label({ icon, children }: { icon?: SettingIconName; children: ReactNode }) {
+  return (
+    <span className="setting-label">
+      {icon && (
+        <span className="setting-icon">
+          <SettingIcon name={icon} />
+        </span>
+      )}
+      {children}
+    </span>
+  )
+}
+
+export function SettingGroup({
+  label,
+  icon,
+  children,
+}: {
+  label?: string
+  icon?: SettingIconName
+  children: ReactNode
+}) {
   return (
     <section className="setting-group">
-      {label !== undefined && <span className="setting-label">{label}</span>}
+      {label !== undefined && <Label icon={icon}>{label}</Label>}
       {children}
     </section>
   )
 }
 
-export function SettingRow({ label, children }: { label: string; children: ReactNode }) {
+export function SettingRow({
+  label,
+  icon,
+  children,
+}: {
+  label: string
+  icon?: SettingIconName
+  children: ReactNode
+}) {
   return (
     <section className="setting-group">
       <div className="setting-row">
-        <span className="setting-label">{label}</span>
+        <Label icon={icon}>{label}</Label>
         {children}
       </div>
     </section>
@@ -22,6 +52,7 @@ export function SettingRow({ label, children }: { label: string; children: React
 
 interface SliderSettingProps {
   label: string
+  icon?: SettingIconName
   display: string
   min: number
   max: number
@@ -30,11 +61,20 @@ interface SliderSettingProps {
   onChange: (value: number) => void
 }
 
-export function SliderSetting({ label, display, min, max, step, value, onChange }: SliderSettingProps) {
+export function SliderSetting({
+  label,
+  icon,
+  display,
+  min,
+  max,
+  step,
+  value,
+  onChange,
+}: SliderSettingProps) {
   return (
     <section className="setting-group">
       <div className="setting-row">
-        <span className="setting-label">{label}</span>
+        <Label icon={icon}>{label}</Label>
         <span className="setting-value">{display}</span>
       </div>
       <input
@@ -90,14 +130,21 @@ interface SelectOption {
 
 interface SelectSettingProps {
   label: string
+  icon?: SettingIconName
   value: string
   options: SelectOption[]
   onChange: (value: string) => void
 }
 
-export function SelectSetting({ label, value, options, onChange }: SelectSettingProps) {
+export function SelectSetting({
+  label,
+  icon,
+  value,
+  options,
+  onChange,
+}: SelectSettingProps) {
   return (
-    <SettingGroup label={label}>
+    <SettingGroup label={label} icon={icon}>
       <select value={value} onChange={(event) => onChange(event.target.value)}>
         {options.map((option) => (
           <option key={option.value} value={option.value}>

@@ -12,11 +12,20 @@
 .setting-row {
   display: flex;
   justify-content: space-between;
-  align-items: baseline;
+  align-items: center;
+  gap: 8px;
 }
 .setting-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   font-size: 14px;
   font-weight: 500;
+}
+.setting-icon {
+  display: inline-flex;
+  flex: none;
+  color: var(--text-muted);
 }
 .setting-value {
   font-size: 13px;
