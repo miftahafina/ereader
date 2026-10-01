@@ -1,0 +1,124 @@
+/* ---------- Reader ---------- */
+.reader {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  position: relative;
+  background: var(--reader-bg);
+}
+
+.reader-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  backdrop-filter: var(--glass-blur);
+  position: relative;
+  z-index: 20;
+  transition: all 0.3s ease;
+}
+
+.reader-heading {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+}
+.reader-title {
+  font-weight: 600;
+  font-size: 15px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.reader-author {
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.reader-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.reader-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  position: relative;
+  background: var(--reader-bg);
+}
+
+.reader-stage {
+  flex: 1;
+  min-width: 0;
+  position: relative;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.reader-spine {
+  position: absolute;
+  left: 50%;
+  top: 15%;
+  height: 70%;
+  width: 1px;
+  background: var(--border);
+  transform: translateX(-50%);
+  z-index: 10;
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+.reader-viewer {
+  width: 100%;
+  height: 100%;
+  background: var(--reader-bg);
+}
+
+.reader-grain {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  mix-blend-mode: multiply;
+  background-repeat: repeat;
+  background-size: 180px 180px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+:root[data-theme='dark'] .reader-grain {
+  mix-blend-mode: screen;
+}
+
+.reader-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  background: var(--reader-bg);
+  color: var(--text-muted);
+}
+.reader-overlay.error {
+  color: #dc2626;
+}
+
+.debug-panel {
+  position: fixed;
+  bottom: 60px;
+  left: 10px;
+  z-index: 1000;
+  pointer-events: none;
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  font-family: ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  font-size: 10px;
+  padding: 5px;
+  border-radius: 4px;
+}
+

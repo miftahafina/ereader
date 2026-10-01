@@ -31,24 +31,51 @@ Selalu jalankan `npm run lint` dan `npm run build` setelah mengubah kode. Tidak 
 ```
 src/
   main.tsx                 entry, render <App/> (tanpa StrictMode, sengaja)
-  App.tsx                  state view library/reader, impor file, drop zone
-  index.css                seluruh styling + CSS variables tema
+  App.tsx                  routing view library/reader + drop zone (data via hooks)
+  index.css                entry styling, @import ke src/styles/*
+  styles/                  CSS modular: theme, base, buttons, library,
+                           reader, reader-popup, reader-chrome, toc,
+                           settings, overlays, responsive
   lib/
     types.ts               tipe bersama (BookRecord, ReaderSettings, dll)
     db.ts                  IndexedDB: store `books` & `progress`
     epub.ts                ekstraksi metadata + sampul dari file EPUB
     samples.ts             manifest buku sampel bawaan (public domain)
     settings.ts            default, palette tema, opsi font & rata teks, persist localStorage
+    reader-theme.ts        buildReaderCss + applyReaderTheme untuk iframe
+    reader-constants.ts    konstanta reader (SPREAD_*, IS_WEBKIT)
+    tts-text.ts            ekstraksi teks terlihat dari iframe -> chunk TTS
+    translate.ts           penerjemahan (Google Translate endpoint)
+    translate-dom.ts       injeksi hasil terjemahan ke iframe
+    dictionary.ts          definisi kata (Wiktionary API)
     fontFaces.ts           @font-face Literata (URL absolut) untuk iframe
   hooks/
     useFileDrop.ts         deteksi drag & drop file level window
     useFullscreen.ts       state & toggle Fullscreen API
+    useMediaQuery.ts       media query reaktif (mis. `pointer: coarse`)
+    useLatest.ts           ref yang selalu berisi nilai terbaru
+    useVoices.ts           daftar suara SpeechSynthesis (reaktif)
+    useReaderSession.ts    merangkai seluruh hook reader jadi satu kontrak
+    useEpubRendition.ts    siklus hidup epub.js, event, resize, locations
+    useReadingProgress.ts  debounce simpan + flush progres baca
+    useReaderChrome.ts     state panel (TOC/settings) & chrome tersembunyi
+    useReaderLayout.ts     lebar area baca, spread 2 kolom, stageMaxWidth
+    useReaderNavigation.ts keyboard, tap zone, swipe
+    useReaderTts.ts        text-to-speech (Web Speech API)
+    useSectionTranslation.ts terjemahan per bagian in-place
+    useWordLookup.ts       popup kamus Wiktionary
+    useLibrary.ts          data perpustakaan (IndexedDB), impor, sampel, hapus
+    useReaderSettings.ts   state + persist pengaturan
+    useTheme.ts            tulis data-theme & meta[theme-color]
   components/
     Library.tsx            grid buku + impor + hapus
-    Reader.tsx             integrasi epub.js, navigasi, tema, gesture
+    Reader.tsx             tampilan reader (orkestrasi useReaderSession + JSX)
     Toc.tsx                daftar isi rekursif
     SettingsPanel.tsx      kontrol tampilan
+    SettingsControls.tsx   primitif form setelan (slider, segmented, select)
     FullscreenButton.tsx   tombol layar penuh (hidden bila tidak didukung)
+    WordPopup.tsx          popup definisi kata
+    DebugPanel.tsx         panel debug TTS (aktif bila `debugMode`)
 public/
   _redirects, _headers     konfigurasi Cloudflare Pages
   samples/*.epub           buku sampel public domain (Alice, Time Machine, Pride & Prejudice)
@@ -60,17 +87,17 @@ wrangler.jsonc             konfigurasi deploy Pages
 - **Jangan tambahkan komentar** kecuali diminta.
 - Type-only import wajib: `import type { X } from '...'` (`verbatimModuleSyntax: true`).
 - `noUnusedLocals` & `noUnusedParameters` aktif; `erasableSyntaxOnly` aktif (tanpa `enum`, `namespace`, parameter properties).
-- Styling terpusat di `src/index.css`. Tema memakai CSS variables di `:root[data-theme="light|sepia|dark"]`; `data-theme` di-set di `document.documentElement` oleh `App.tsx`.
+- Styling modular di `src/styles/*`, diimpor oleh `src/index.css`. Tema memakai CSS variables di `:root[data-theme="light|sepia|dark"]`; `data-theme` di-set di `document.documentElement` oleh `App.tsx`.
 - Bahasa UI: Indonesia.
 
 ## Catatan penting epub.js (jangan diubah tanpa alasan)
 
 - Isi buku dirender di `<iframe srcdoc sandbox="allow-same-origin">`. CSS/font dari dokumen induk **tidak** otomatis tembus ke iframe.
-- **Safari/WebKit** tidak meneruskan event `selectionchange`/`mouseup` ke iframe `sandbox="allow-same-origin"` tanpa `allow-scripts`. Karena popup kamus bergantung pada event `selected` epub.js, `allowScriptedContent` aktif **khusus WebKit** (`IS_WEBKIT` di `Reader.tsx`); browser lain tetap `false` demi keamanan konten.
-- Tema, font, & rata teks disuntik lewat **content hook** `rendition.hooks.content.register(...)` + `contents.addStylesheetCss(css, 'ereader')` (lihat `buildReaderCss`/`applyReaderTheme` di `Reader.tsx`). Jangan hanya pakai `themes.registerCss` + `select` — epub.js melewati tema `serialized` saat konten pertama dimuat. Rata teks `default` tidak menimpa gaya asli EPUB (rule `text-align` hanya disuntik bila bukan `default`).
+- **Safari/WebKit** tidak meneruskan event `selectionchange`/`mouseup` ke iframe `sandbox="allow-same-origin"` tanpa `allow-scripts`. Karena popup kamus bergantung pada event `selected` epub.js, `allowScriptedContent` aktif **khusus WebKit** (`IS_WEBKIT` di `src/hooks/useReaderSession.ts`); browser lain tetap `false` demi keamanan konten.
+- Tema, font, & rata teks disuntik lewat **content hook** `rendition.hooks.content.register(...)` + `contents.addStylesheetCss(css, 'ereader')` (lihat `buildReaderCss`/`applyReaderTheme` di `src/lib/reader-theme.ts`). Jangan hanya pakai `themes.registerCss` + `select` — epub.js melewati tema `serialized` saat konten pertama dimuat. Rata teks `default` tidak menimpa gaya asli EPUB (rule `text-align` hanya disuntik bila bukan `default`).
 - Font di iframe butuh `@font-face` dengan URL absolut (`src/lib/fontFaces.ts`).
-- Koordinat event yang diteruskan dari iframe (mis. `click`) relatif terhadap viewport iframe yang **lebih lebar dari layar** (konten kolom). Untuk tap zone, konversi dengan `frame.getBoundingClientRect()` dikurangi rect `.reader-viewer` (lihat `onTap`).
-- Layout 2 kolom (spread) aktif otomatis bila lebar area baca ≥ `SPREAD_MIN_WIDTH` (1000px) dan mode `paginated`. `stageMaxWidth` dihitung di `Reader.tsx`.
+- Koordinat event yang diteruskan dari iframe (mis. `click`) relatif terhadap viewport iframe yang **lebih lebar dari layar** (konten kolom). Untuk tap zone, konversi dengan `frame.getBoundingClientRect()` dikurangi rect `.reader-viewer` (`handleTap` di `src/hooks/useReaderNavigation.ts`).
+- Layout 2 kolom (spread) aktif otomatis bila lebar area baca ≥ `SPREAD_MIN_WIDTH` (1000px) dan mode `paginated`. `stageMaxWidth` dihitung di `src/hooks/useReaderSession.ts`.
 - Lebar iframe = total lebar kolom (bisa ribuan px); `contents.window.innerWidth` **bukan** lebar yang terlihat.
 
 ## Data & penyimpanan

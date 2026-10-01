@@ -33,9 +33,12 @@ function getDB() {
 
 export async function listBooks(): Promise<BookMeta[]> {
   const db = await getDB()
-  const books = await db.getAllFromIndex('books', 'by-addedAt')
-  return books
-    .map<BookMeta>((b) => ({
+  const index = db.transaction('books').store.index('by-addedAt')
+  const books: BookMeta[] = []
+  let cursor = await index.openCursor(null, 'prev')
+  while (cursor) {
+    const b = cursor.value
+    books.push({
       id: b.id,
       title: b.title,
       author: b.author,
@@ -43,8 +46,10 @@ export async function listBooks(): Promise<BookMeta[]> {
       size: b.size,
       addedAt: b.addedAt,
       cover: b.cover,
-    }))
-    .sort((a, b) => b.addedAt - a.addedAt)
+    })
+    cursor = await cursor.continue()
+  }
+  return books
 }
 
 export async function getBook(id: string): Promise<BookRecord | undefined> {

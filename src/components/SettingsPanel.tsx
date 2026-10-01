@@ -1,16 +1,29 @@
 import { defaultSettings, fontOptions, textAlignOptions } from '../lib/settings'
 import { translateLanguageOptions } from '../lib/translate'
-import type { ReaderSettings, ReaderTheme, TextAlign } from '../lib/types'
+import { useVoices } from '../hooks/useVoices'
+import type { FlowMode, ReaderSettings, ReaderTheme, TextAlign } from '../lib/types'
+import {
+  SegmentedControl,
+  SelectSetting,
+  SettingGroup,
+  SettingRow,
+  SliderSetting,
+} from './SettingsControls'
 
 interface SettingsPanelProps {
   settings: ReaderSettings
   onChange: (patch: Partial<ReaderSettings>) => void
 }
 
-const themes: { value: ReaderTheme; label: string }[] = [
+const themeOptions: { value: ReaderTheme; label: string }[] = [
   { value: 'light', label: 'Terang' },
   { value: 'sepia', label: 'Sepia' },
   { value: 'dark', label: 'Gelap' },
+]
+
+const flowOptions: { value: FlowMode; label: string }[] = [
+  { value: 'paginated', label: 'Halaman' },
+  { value: 'scrolled', label: 'Gulir' },
 ]
 
 function AlignIcon({ value }: { value: TextAlign }) {
@@ -58,249 +71,163 @@ function AlignIcon({ value }: { value: TextAlign }) {
 }
 
 export function SettingsPanel({ settings, onChange }: SettingsPanelProps) {
+  const voices = useVoices()
+  const alignOptions = textAlignOptions.map((option) => ({
+    value: option.value,
+    label: option.label,
+    icon: <AlignIcon value={option.value} />,
+  }))
+  const voiceOptions = [
+    { value: '', label: 'Default' },
+    ...voices.map((voice) => ({ value: voice.voiceURI, label: `${voice.name} (${voice.lang})` })),
+  ]
+
   return (
     <div className="settings">
       <h2 className="sidebar-title">Tampilan</h2>
-      
-      <section className="setting-group">
-        <span className="setting-label">Tema</span>
-        <div className="segmented">
-          {themes.map((theme) => (
-            <button
-              key={theme.value}
-              className={settings.theme === theme.value ? 'active' : ''}
-              onClick={() => onChange({ theme: theme.value })}
-            >
-              {theme.label}
-            </button>
-          ))}
-        </div>
-      </section>
 
-      <section className="setting-group">
-        <div className="setting-row">
-          <span className="setting-label">Ukuran huruf</span>
-          <span className="setting-value">{settings.fontSize}%</span>
-        </div>
-        <input
-          type="range"
-          min={70}
-          max={200}
-          step={5}
-          value={settings.fontSize}
-          onChange={(event) => onChange({ fontSize: Number(event.target.value) })}
+      <SettingGroup label="Tema">
+        <SegmentedControl
+          options={themeOptions}
+          value={settings.theme}
+          onChange={(theme) => onChange({ theme })}
         />
-      </section>
+      </SettingGroup>
 
-      <section className="setting-group">
-        <span className="setting-label">Jenis huruf</span>
-        <select
-          value={settings.fontFamily}
-          onChange={(event) => onChange({ fontFamily: event.target.value })}
-        >
-          {fontOptions.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-      </section>
+      <SliderSetting
+        label="Ukuran huruf"
+        display={`${settings.fontSize}%`}
+        min={70}
+        max={200}
+        step={5}
+        value={settings.fontSize}
+        onChange={(fontSize) => onChange({ fontSize })}
+      />
 
-      <section className="setting-group">
-        <div className="setting-row">
-          <span className="setting-label">Transparansi teks</span>
-          <span className="setting-value">{settings.fontOpacity}%</span>
-        </div>
-        <input
-          type="range"
-          min={10}
-          max={100}
-          step={5}
-          value={settings.fontOpacity}
-          onChange={(event) => onChange({ fontOpacity: Number(event.target.value) })}
+      <SelectSetting
+        label="Jenis huruf"
+        value={settings.fontFamily}
+        options={fontOptions}
+        onChange={(fontFamily) => onChange({ fontFamily })}
+      />
+
+      <SliderSetting
+        label="Transparansi teks"
+        display={`${settings.fontOpacity}%`}
+        min={10}
+        max={100}
+        step={5}
+        value={settings.fontOpacity}
+        onChange={(fontOpacity) => onChange({ fontOpacity })}
+      />
+
+      <SliderSetting
+        label="Jarak baris"
+        display={settings.lineHeight.toFixed(1)}
+        min={1.2}
+        max={2.4}
+        step={0.1}
+        value={settings.lineHeight}
+        onChange={(lineHeight) => onChange({ lineHeight })}
+      />
+
+      <SliderSetting
+        label="Jarak antar paragraf"
+        display={`${settings.paragraphSpacing.toFixed(1)}em`}
+        min={0}
+        max={2}
+        step={0.1}
+        value={settings.paragraphSpacing}
+        onChange={(paragraphSpacing) => onChange({ paragraphSpacing })}
+      />
+
+      <SettingGroup label="Rata teks">
+        <SegmentedControl
+          options={alignOptions}
+          value={settings.textAlign}
+          onChange={(textAlign) => onChange({ textAlign })}
         />
-      </section>
+      </SettingGroup>
 
-      <section className="setting-group">
-        <div className="setting-row">
-          <span className="setting-label">Jarak baris</span>
-          <span className="setting-value">{settings.lineHeight.toFixed(1)}</span>
-        </div>
-        <input
-          type="range"
-          min={1.2}
-          max={2.4}
-          step={0.1}
-          value={settings.lineHeight}
-          onChange={(event) => onChange({ lineHeight: Number(event.target.value) })}
+      <SettingRow label="Mode baca">
+        <SegmentedControl
+          options={flowOptions}
+          value={settings.flow}
+          onChange={(flow) => onChange({ flow })}
         />
-      </section>
+      </SettingRow>
 
-      <section className="setting-group">
-        <div className="setting-row">
-          <span className="setting-label">Jarak antar paragraf</span>
-          <span className="setting-value">{settings.paragraphSpacing.toFixed(1)}em</span>
-        </div>
+      <SliderSetting
+        label="Lebar kolom"
+        display={`${settings.maxWidth}px`}
+        min={480}
+        max={1200}
+        step={20}
+        value={settings.maxWidth}
+        onChange={(maxWidth) => onChange({ maxWidth })}
+      />
+
+      <SliderSetting
+        label="Tekstur kertas"
+        display={`${settings.grain}%`}
+        min={0}
+        max={100}
+        step={5}
+        value={settings.grain}
+        onChange={(grain) => onChange({ grain })}
+      />
+
+      <h2 className="sidebar-title">Terjemahan</h2>
+
+      <SelectSetting
+        label="Bahasa tujuan"
+        value={settings.translateTo}
+        options={translateLanguageOptions}
+        onChange={(translateTo) => onChange({ translateTo })}
+      />
+
+      <h2 className="sidebar-title">Audiobook (beta)</h2>
+
+      <SliderSetting
+        label="Kecepatan"
+        display={`${settings.ttsRate}x`}
+        min={0.5}
+        max={2}
+        step={0.1}
+        value={settings.ttsRate}
+        onChange={(ttsRate) => onChange({ ttsRate })}
+      />
+
+      <SliderSetting
+        label="Nada"
+        display={`${settings.ttsPitch}`}
+        min={0}
+        max={2}
+        step={0.1}
+        value={settings.ttsPitch}
+        onChange={(ttsPitch) => onChange({ ttsPitch })}
+      />
+
+      <SelectSetting
+        label="Suara"
+        value={settings.ttsVoice}
+        options={voiceOptions}
+        onChange={(ttsVoice) => onChange({ ttsVoice })}
+      />
+
+      <h2 className="sidebar-title">DEVELOPMENT</h2>
+
+      <SettingRow label="Mode Debug">
         <input
-          type="range"
-          min={0}
-          max={2}
-          step={0.1}
-          value={settings.paragraphSpacing}
-          onChange={(event) => onChange({ paragraphSpacing: Number(event.target.value) })}
+          type="checkbox"
+          checked={settings.debugMode}
+          onChange={(event) => onChange({ debugMode: event.target.checked })}
         />
-      </section>
+      </SettingRow>
 
-       <section className="setting-group">
-        <span className="setting-label">Rata teks</span>
-        <div className="segmented">
-          {textAlignOptions.map((option) => (
-            <button
-              key={option.value}
-              className={settings.textAlign === option.value ? 'active' : ''}
-              onClick={() => onChange({ textAlign: option.value })}
-              aria-label={option.label}
-              title={option.label}
-            >
-              <AlignIcon value={option.value} />
-            </button>
-          ))}
-        </div>
-      </section>
-
-       <section className="setting-group">
-         <div className="setting-row">
-           <span className="setting-label">Mode baca</span>
-           <div className="segmented">
-             <button
-               className={settings.flow === 'paginated' ? 'active' : ''}
-               onClick={() => onChange({ flow: 'paginated' })}
-             >
-               Halaman
-             </button>
-             <button
-               className={settings.flow === 'scrolled' ? 'active' : ''}
-               onClick={() => onChange({ flow: 'scrolled' })}
-             >
-               Gulir
-             </button>
-           </div>
-         </div>
-       </section>
-
-      <section className="setting-group">
-        <div className="setting-row">
-          <span className="setting-label">Lebar kolom</span>
-          <span className="setting-value">{settings.maxWidth}px</span>
-        </div>
-        <input
-          type="range"
-          min={480}
-          max={1200}
-          step={20}
-          value={settings.maxWidth}
-          onChange={(event) => onChange({ maxWidth: Number(event.target.value) })}
-        />
-      </section>
-
-       <section className="setting-group">
-         <div className="setting-row">
-           <span className="setting-label">Tekstur kertas</span>
-           <span className="setting-value">{settings.grain}%</span>
-         </div>
-         <input
-           type="range"
-           min={0}
-           max={100}
-           step={5}
-           value={settings.grain}
-           onChange={(event) => onChange({ grain: Number(event.target.value) })}
-         />
-       </section>
-
-       <h2 className="sidebar-title">Terjemahan</h2>
-
-       <section className="setting-group">
-         <span className="setting-label">Bahasa tujuan</span>
-         <select
-           value={settings.translateTo}
-           onChange={(event) => onChange({ translateTo: event.target.value })}
-         >
-           {translateLanguageOptions.map((option) => (
-             <option key={option.value} value={option.value}>
-               {option.label}
-             </option>
-           ))}
-         </select>
-       </section>
-
-
-       <h2 className="sidebar-title">Audiobook (beta)</h2>
-
-       <section className="setting-group">
-         <div className="setting-row">
-           <span className="setting-label">Kecepatan</span>
-           <span className="setting-value">{settings.ttsRate}x</span>
-         </div>
-         <input
-           type="range"
-           min={0.5}
-           max={2}
-           step={0.1}
-           value={settings.ttsRate}
-           onChange={(event) => onChange({ ttsRate: Number(event.target.value) })}
-         />
-       </section>
- 
-       <section className="setting-group">
-         <div className="setting-row">
-           <span className="setting-label">Nada</span>
-           <span className="setting-value">{settings.ttsPitch}</span>
-         </div>
-         <input
-           type="range"
-           min={0}
-           max={2}
-           step={0.1}
-           value={settings.ttsPitch}
-           onChange={(event) => onChange({ ttsPitch: Number(event.target.value) })}
-         />
-       </section>
- 
-       <section className="setting-group">
-         <span className="setting-label">Suara</span>
-         <select
-           value={settings.ttsVoice}
-           onChange={(event) => onChange({ ttsVoice: event.target.value })}
-         >
-           <option value="">Default</option>
-           {window.speechSynthesis.getVoices().map((voice) => (
-             <option key={voice.voiceURI} value={voice.voiceURI}>
-               {voice.name} ({voice.lang})
-             </option>
-           ))}
-         </select>
-       </section>
-
-
-        <h2 className="sidebar-title">DEVELOPMENT</h2>
-
-        <section className="setting-group">
-          <div className="setting-row">
-            <span className="setting-label">Mode Debug</span>
-            <input 
-              type="checkbox" 
-              checked={settings.debugMode} 
-              onChange={(e) => onChange({ debugMode: e.target.checked })} 
-            />
-          </div>
-        </section>
-
-        <button className="ghost-btn" onClick={() => onChange({ ...defaultSettings })}>
-          Reset pengaturan
-        </button>
-
-
+      <button className="ghost-btn" onClick={() => onChange({ ...defaultSettings })}>
+        Reset pengaturan
+      </button>
     </div>
   )
 }

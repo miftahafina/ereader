@@ -1,0 +1,37 @@
+/* ---------- TOC ---------- */
+.toc-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.toc-list[data-depth='1'],
+.toc-list[data-depth='2'],
+.toc-list[data-depth='3'] {
+  padding-left: 14px;
+}
+.toc-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: none;
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--text);
+}
+.toc-item:hover {
+  background: var(--surface-2);
+}
+.toc-item.active {
+  background: var(--surface-2);
+  color: var(--accent);
+  font-weight: 600;
+}
+.toc-empty {
+  color: var(--text-muted);
+  font-size: 14px;
+}
+

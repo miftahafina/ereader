@@ -56,24 +56,30 @@ Konfigurasi ada di `wrangler.jsonc`. File `public/_redirects` dan `public/_heade
 ```
 src/
   main.tsx                  entry React
-  App.tsx                   state view library/reader, impor file, drop zone, tema
-  index.css                 styling + CSS variables tema
+  App.tsx                   routing view library/reader + drop zone (data via hooks)
+  index.css                 entry styling (@import ke src/styles/*)
+  styles/                   CSS modular (theme, base, library, reader, dll)
   lib/
     types.ts                tipe bersama
     db.ts                   IndexedDB (store books & progress)
-    epub.ts, epub-utils.ts  ekstraksi metadata, sampul, dan utilitas teks EPUB
+    epub.ts                 ekstraksi metadata & sampul EPUB
+    reader-theme.ts         CSS tema/font reader untuk iframe
+    reader-constants.ts     konstanta reader (SPREAD_*, IS_WEBKIT)
+    tts-text.ts             ekstraksi teks terlihat dari iframe -> chunk TTS
     samples.ts              buku sampel bawaan
     settings.ts             default & persist pengaturan (localStorage)
     translate.ts            penerjemahan (Google Translate endpoint)
     translate-dom.ts        injeksi hasil terjemahan ke iframe
     dictionary.ts           definisi kata (Wiktionary API)
-    text-utils.ts           utilitas parsing teks
     fontFaces.ts            @font-face Literata untuk iframe
-  hooks/
-    useFileDrop.ts          deteksi drag & drop level window
-    useFullscreen.ts        state & toggle Fullscreen API
+  hooks/                    useFileDrop, useFullscreen, useMediaQuery, useLatest,
+                            useVoices, useReaderSession, useEpubRendition,
+                            useReadingProgress, useReaderChrome, useReaderLayout,
+                            useReaderNavigation, useReaderTts, useSectionTranslation,
+                            useWordLookup, useLibrary, useReaderSettings, useTheme
   components/
-    Library.tsx, Reader.tsx, Toc.tsx, SettingsPanel.tsx, FullscreenButton.tsx
+    Library.tsx, Reader.tsx, Toc.tsx, SettingsPanel.tsx,
+    SettingsControls.tsx, FullscreenButton.tsx, WordPopup.tsx, DebugPanel.tsx
 public/                     _redirects, _headers, favicon, icons, translate icons, samples/*.epub
 wrangler.jsonc              konfigurasi Cloudflare Pages
 ```

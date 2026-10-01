@@ -102,14 +102,6 @@ async function safeTranslate(
   }
 }
 
-export async function fetchTranslation(
-  text: string,
-  target: string,
-  signal?: AbortSignal,
-): Promise<TranslationResult | null> {
-  return safeTranslate(text, target, signal)
-}
-
 export async function fetchTranslations(
   texts: string[],
   target: string,
