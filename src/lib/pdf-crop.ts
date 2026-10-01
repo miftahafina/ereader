@@ -9,6 +9,9 @@ type RGB = { r: number; g: number; b: number }
 
 const SCAN_WIDTH = 360
 const DEFAULT_THRESHOLD = 34
+const DILATE_RADIUS = 2
+const MIN_COMPONENT_INK = 12
+const MIN_COMPONENT_INK_RATIO = 0.00008
 
 function sampleBackground(data: Uint8ClampedArray, width: number, height: number): RGB {
   const patch = Math.max(2, Math.round(Math.min(width, height) * 0.02))
@@ -18,24 +21,26 @@ function sampleBackground(data: Uint8ClampedArray, width: number, height: number
     [0, height - patch],
     [width - patch, height - patch],
   ]
-  let r = 0
-  let g = 0
-  let b = 0
-  let count = 0
+  const reds: number[] = []
+  const greens: number[] = []
+  const blues: number[] = []
   for (const [cx, cy] of corners) {
     for (let y = cy; y < cy + patch; y += 1) {
       for (let x = cx; x < cx + patch; x += 1) {
         const i = (y * width + x) * 4
         if (data[i + 3] < 128) continue
-        r += data[i]
-        g += data[i + 1]
-        b += data[i + 2]
-        count += 1
+        reds.push(data[i])
+        greens.push(data[i + 1])
+        blues.push(data[i + 2])
       }
     }
   }
-  if (count === 0) return { r: 255, g: 255, b: 255 }
-  return { r: r / count, g: g / count, b: b / count }
+  if (reds.length === 0) return { r: 255, g: 255, b: 255 }
+  const median = (values: number[]) => {
+    values.sort((a, b) => a - b)
+    return values[Math.floor(values.length / 2)]
+  }
+  return { r: median(reds), g: median(greens), b: median(blues) }
 }
 
 export function detectContentBounds(source: HTMLCanvasElement, threshold = DEFAULT_THRESHOLD): CropRect {
@@ -50,10 +55,9 @@ export function detectContentBounds(source: HTMLCanvasElement, threshold = DEFAU
   const bg = sampleBackground(data, scanWidth, scanHeight)
 
   const limit = threshold * threshold
-  let minX = scanWidth
-  let minY = scanHeight
-  let maxX = -1
-  let maxY = -1
+  const ink = new Uint8Array(scanWidth * scanHeight)
+  const dilated = new Uint8Array(scanWidth * scanHeight)
+  let hasInk = false
 
   for (let y = 0; y < scanHeight; y += 1) {
     for (let x = 0; x < scanWidth; x += 1) {
@@ -63,11 +67,78 @@ export function detectContentBounds(source: HTMLCanvasElement, threshold = DEFAU
       const dg = data[i + 1] - bg.g
       const db = data[i + 2] - bg.b
       if (dr * dr + dg * dg + db * db > limit) {
-        if (x < minX) minX = x
-        if (x > maxX) maxX = x
-        if (y < minY) minY = y
-        if (y > maxY) maxY = y
+        ink[y * scanWidth + x] = 1
+        hasInk = true
       }
+    }
+  }
+
+  if (!hasInk) return { x: 0, y: 0, width: source.width, height: source.height }
+
+  for (let y = 0; y < scanHeight; y += 1) {
+    for (let x = 0; x < scanWidth; x += 1) {
+      if (ink[y * scanWidth + x] !== 1) continue
+      const top = Math.max(0, y - DILATE_RADIUS)
+      const bottom = Math.min(scanHeight - 1, y + DILATE_RADIUS)
+      const left = Math.max(0, x - DILATE_RADIUS)
+      const right = Math.min(scanWidth - 1, x + DILATE_RADIUS)
+      for (let ny = top; ny <= bottom; ny += 1) {
+        for (let nx = left; nx <= right; nx += 1) {
+          dilated[ny * scanWidth + nx] = 1
+        }
+      }
+    }
+  }
+
+  const minInk = Math.max(MIN_COMPONENT_INK, Math.round(scanWidth * scanHeight * MIN_COMPONENT_INK_RATIO))
+  let minX = scanWidth
+  let minY = scanHeight
+  let maxX = -1
+  let maxY = -1
+  const stack: number[] = []
+
+  for (let start = 0; start < dilated.length; start += 1) {
+    if (dilated[start] !== 1) continue
+    dilated[start] = 0
+    stack.length = 0
+    stack.push(start)
+    let inkCount = 0
+    let componentMinX = scanWidth
+    let componentMinY = scanHeight
+    let componentMaxX = -1
+    let componentMaxY = -1
+
+    while (stack.length > 0) {
+      const index = stack.pop() as number
+      const x = index % scanWidth
+      const y = (index - x) / scanWidth
+
+      if (ink[index] === 1) {
+        inkCount += 1
+        if (x < componentMinX) componentMinX = x
+        if (x > componentMaxX) componentMaxX = x
+        if (y < componentMinY) componentMinY = y
+        if (y > componentMaxY) componentMaxY = y
+      }
+
+      for (let ny = y - 1; ny <= y + 1; ny += 1) {
+        if (ny < 0 || ny >= scanHeight) continue
+        for (let nx = x - 1; nx <= x + 1; nx += 1) {
+          if (nx < 0 || nx >= scanWidth) continue
+          const neighbor = ny * scanWidth + nx
+          if (dilated[neighbor] === 1) {
+            dilated[neighbor] = 0
+            stack.push(neighbor)
+          }
+        }
+      }
+    }
+
+    if (inkCount >= minInk) {
+      if (componentMinX < minX) minX = componentMinX
+      if (componentMaxX > maxX) maxX = componentMaxX
+      if (componentMinY < minY) minY = componentMinY
+      if (componentMaxY > maxY) maxY = componentMaxY
     }
   }
 
