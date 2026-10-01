@@ -21,6 +21,7 @@ export const defaultSettings: ReaderSettings = {
   pdfCropMargin: 8,
   pdfZoom: 1,
   pdfReflow: false,
+  pdfScanTheme: true,
 }
 
 export const themePalette: Record<

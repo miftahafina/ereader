@@ -82,6 +82,14 @@ export function PdfSettingsPanel({ settings, onChange }: PdfSettingsPanelProps) 
         />
       )}
 
+      <SettingRow label="Tema untuk halaman scan">
+        <input
+          type="checkbox"
+          checked={settings.pdfScanTheme}
+          onChange={(event) => onChange({ pdfScanTheme: event.target.checked })}
+        />
+      </SettingRow>
+
       <h2 className="sidebar-title">Reflowable</h2>
 
       <SettingRow label="Mode reflow">

@@ -256,6 +256,7 @@ export function PdfReader({ bookId, settings, onSettingsChange, onClose }: PdfRe
                   theme={settings.theme}
                   fontOpacity={settings.fontOpacity}
                   imageOnly={pageImageOnly[pageNumber] ?? false}
+                  scanTheme={settings.pdfScanTheme}
                 />
               ))}
               {pageNumbers.length === 0 && !loading && !error && (

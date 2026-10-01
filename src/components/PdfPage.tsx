@@ -13,6 +13,7 @@ interface PdfPageProps {
   theme: ReaderTheme
   fontOpacity: number
   imageOnly?: boolean
+  scanTheme?: boolean
   onRendered?: () => void
 }
 
@@ -27,6 +28,7 @@ export function PdfPage({
   theme,
   fontOpacity,
   imageOnly = false,
+  scanTheme = false,
   onRendered,
 }: PdfPageProps) {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -93,7 +95,7 @@ export function PdfPage({
         display = cropCanvas(rendered.canvas, rect, marginDevice)
       }
 
-      recolorForTheme(display, theme, fontOpacity / 100, !imageOnly)
+      recolorForTheme(display, theme, fontOpacity / 100, !imageOnly || scanTheme)
 
       const logicalWidth = display.width / renderScale
       const logicalHeight = display.height / renderScale
@@ -121,7 +123,7 @@ export function PdfPage({
         // render task sudah selesai
       }
     }
-  }, [page, size, crop, cropMargin, zoom, theme, fontOpacity, imageOnly])
+  }, [page, size, crop, cropMargin, zoom, theme, fontOpacity, imageOnly, scanTheme])
 
   return <div className="pdf-page" ref={containerRef} />
 }

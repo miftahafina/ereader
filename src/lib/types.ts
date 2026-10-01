@@ -51,4 +51,5 @@ export interface ReaderSettings {
   pdfCropMargin: number
   pdfZoom: number
   pdfReflow: boolean
+  pdfScanTheme: boolean
 }
