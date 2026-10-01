@@ -1,20 +1,23 @@
 import type { PDFPageProxy } from 'pdfjs-dist'
 import { useEffect, useRef, useState } from 'react'
-import { cropCanvas, detectContentBounds } from '../lib/pdf-crop'
 import { renderPage } from '../lib/pdf'
+import { recolorForTheme } from '../lib/pdf-color'
+import { cropCanvas, detectContentBounds } from '../lib/pdf-crop'
+import type { ReaderTheme } from '../lib/types'
 
 interface PdfPageProps {
   page: PDFPageProxy | null
   crop: boolean
   cropMargin: number
   zoom: number
+  theme: ReaderTheme
   onRendered?: () => void
 }
 
 const PANE_PADDING = 12
 const SUPERSAMPLE = 2
 
-export function PdfPage({ page, crop, cropMargin, zoom, onRendered }: PdfPageProps) {
+export function PdfPage({ page, crop, cropMargin, zoom, theme, onRendered }: PdfPageProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const onRenderedRef = useRef(onRendered)
   const [size, setSize] = useState<{ width: number; height: number } | null>(null)
@@ -79,6 +82,8 @@ export function PdfPage({ page, crop, cropMargin, zoom, onRendered }: PdfPagePro
         display = cropCanvas(rendered.canvas, rect, marginDevice)
       }
 
+      recolorForTheme(display, theme)
+
       const logicalWidth = display.width / renderScale
       const logicalHeight = display.height / renderScale
       const contain =
@@ -105,7 +110,7 @@ export function PdfPage({ page, crop, cropMargin, zoom, onRendered }: PdfPagePro
         // render task sudah selesai
       }
     }
-  }, [page, size, crop, cropMargin, zoom])
+  }, [page, size, crop, cropMargin, zoom, theme])
 
   return <div className="pdf-page" ref={containerRef} />
 }

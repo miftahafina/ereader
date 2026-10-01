@@ -221,6 +221,7 @@ export function PdfReader({ bookId, settings, onSettingsChange, onClose }: PdfRe
                   crop={settings.pdfCrop}
                   cropMargin={settings.pdfCropMargin}
                   zoom={settings.pdfZoom}
+                  theme={settings.theme}
                 />
               ))}
               {pageNumbers.length === 0 && !loading && !error && (
