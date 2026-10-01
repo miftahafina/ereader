@@ -101,7 +101,7 @@ export function PdfPage({ page, crop, cropMargin, zoom, theme, fontOpacity, onRe
       onRenderedRef.current?.()
     }
 
-    void run()
+    run().catch(() => undefined)
 
     return () => {
       cancelled = true
