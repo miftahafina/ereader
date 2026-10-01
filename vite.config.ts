@@ -1,4 +1,4 @@
-import { cpSync, existsSync } from 'node:fs'
+import { cpSync, existsSync, mkdirSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import react from '@vitejs/plugin-react'
@@ -11,11 +11,14 @@ function pdfjsAssets(): Plugin {
   const target = resolve(root, 'public/pdfjs')
   const dirs = ['wasm', 'standard_fonts', 'cmaps']
   const copy = () => {
+    mkdirSync(target, { recursive: true })
     for (const dir of dirs) {
       const from = resolve(source, dir)
       if (!existsSync(from)) continue
       cpSync(from, resolve(target, dir), { recursive: true })
     }
+    const license = resolve(source, 'LICENSE')
+    if (existsSync(license)) cpSync(license, resolve(target, 'LICENSE'))
   }
   return {
     name: 'pdfjs-assets',

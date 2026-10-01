@@ -99,6 +99,8 @@ public/
   samples/*.epub           buku sampel public domain (Alice, Time Machine, Pride & Prejudice)
   pdfjs/                   asset pdf.js hasil salin Vite (gitignored)
 wrangler.jsonc             konfigurasi deploy Pages
+LICENSE                    lisensi MIT kode proyek
+README.md, PLAN.md, AGENTS.md, THIRD_PARTY_NOTICES.md  dokumentasi proyek
 ```
 
 ## Konvensi kode
@@ -124,7 +126,7 @@ wrangler.jsonc             konfigurasi deploy Pages
 
 - Konten PDF dirender ke `<canvas>`, **bukan** iframe. Tema/font EPUB tidak berlaku untuk halaman PDF; warna halaman di-remap lewat `recolorForTheme` (`src/lib/pdf-color.ts`) setelah render.
 - Worker dimuat via `pdfjs-dist/build/pdf.worker.min.mjs?url`; `GlobalWorkerOptions.workerSrc` di-set di `src/lib/pdf.ts`.
-- pdf.js butuh `wasmUrl`/`standardFontDataUrl`/`cMapUrl` agar scan (JBIG2/JPX) & teks CJK ter-decode. Plugin `pdfjsAssets` di `vite.config.ts` menyalin folder `wasm`, `standard_fonts`, `cmaps` dari `node_modules/pdfjs-dist` ke `public/pdfjs/` (gitignored, ikut tersalin ke `dist/pdfjs`).
+- pdf.js butuh `wasmUrl`/`standardFontDataUrl`/`cMapUrl` agar scan (JBIG2/JPX) & teks CJK ter-decode. Plugin `pdfjsAssets` di `vite.config.ts` menyalin folder `wasm`, `standard_fonts`, `cmaps` beserta `LICENSE` inti pdf.js dari `node_modules/pdfjs-dist` ke `public/pdfjs/` (gitignored, ikut tersalin ke `dist/pdfjs`). Lisensi pihak ketiga dirinci di `THIRD_PARTY_NOTICES.md`.
 - **Jangan** pakai `PDFDocumentProxy.destroy()` (tidak tersedia). Pakai `doc.loadingTask.destroy()` (lihat `usePdfDocument.ts`).
 - `pageHasText()` (`src/lib/pdf.ts`) mendeteksi halaman scan (tanpa teks). Halaman image-only diwarnai tanpa remap kecuali `pdfScanTheme` aktif; `fontOpacity` tetap berlaku di kedua kasus (lihat `PdfPage.tsx`).
 - Crop margin (`detectContentBounds`, `src/lib/pdf-crop.ts`): downscale ke lebar 360, binarisasi vs latar (median 4 sudut), lalu **dilasi** mask dan buang komponen dengan tinta < ambang. Tujuannya agar bintik scan terisolasi tidak memperlebar kotak crop. `cropCanvas` menambahkan `pdfCropMargin`.
@@ -141,7 +143,7 @@ wrangler.jsonc             konfigurasi deploy Pages
 
 - Cloudflare Pages: build command `npm run build`, output `dist`.
 - `public/_redirects` (SPA fallback) & `public/_headers` (cache `/assets/*` immutable) ikut tersalin ke `dist`.
-- Asset pdf.js (`public/pdfjs`) dihasilkan plugin Vite saat build dan ikut ke `dist/pdfjs`; folder sumber di `public/` gitignored.
+- Asset pdf.js (`public/pdfjs`, termasuk `LICENSE` inti) dihasilkan plugin Vite saat build dan ikut ke `dist/pdfjs`; folder sumber di `public/` gitignored.
 - Alternatif: `npx wrangler pages deploy dist`.
 
 ## Batasan yang diketahui

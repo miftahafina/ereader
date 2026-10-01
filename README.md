@@ -106,7 +106,7 @@ public/                     _redirects, _headers, favicon, icons, translate icon
 wrangler.jsonc              konfigurasi Cloudflare Pages
 ```
 
-Dokumentasi tambahan: [`AGENTS.md`](./AGENTS.md) (konvensi & catatan teknis) dan [`PLAN.md`](./PLAN.md) (arsitektur & roadmap).
+Dokumentasi tambahan: [`AGENTS.md`](./AGENTS.md) (konvensi & catatan teknis), [`PLAN.md`](./PLAN.md) (arsitektur & roadmap), dan [`THIRD_PARTY_NOTICES.md`](./THIRD_PARTY_NOTICES.md) (lisensi pihak ketiga).
 
 ## Teknologi
 
@@ -121,4 +121,6 @@ Dokumentasi tambahan: [`AGENTS.md`](./AGENTS.md) (konvensi & catatan teknis) dan
 
 ## Lisensi
 
-Kode proyek ini tersedia bebas. Font Literata berlisensi SIL Open Font License 1.1.
+Kode proyek ini dirilis di bawah [MIT License](./LICENSE). Font Literata berlisensi SIL Open Font License 1.1.
+
+Lisensi pihak ketiga (React, epub.js, pdf.js, idb, serta aset WASM/font/CMap pdf.js) dirinci di [`THIRD_PARTY_NOTICES.md`](./THIRD_PARTY_NOTICES.md).
