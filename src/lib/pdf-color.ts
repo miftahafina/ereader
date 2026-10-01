@@ -54,12 +54,18 @@ function sampleBackground(data: Uint8ClampedArray, width: number, height: number
 
 const SATURATION_THRESHOLD = 48
 
-export function recolorForTheme(canvas: HTMLCanvasElement, theme: ReaderTheme): void {
-  if (theme === 'light') return
+export function recolorForTheme(
+  canvas: HTMLCanvasElement,
+  theme: ReaderTheme,
+  opacity = 1,
+): void {
+  const alpha = Math.min(1, Math.max(0, opacity))
+  if (theme === 'light' && alpha >= 1) return
 
   const palette = themePalette[theme]
-  const backgroundTarget = hexToRgb(palette.bg)
+  const backgroundTarget = hexToRgb(palette.readerBg)
   const textTarget = hexToRgb(palette.text)
+  const remap = theme !== 'light'
 
   const context = canvas.getContext('2d', { willReadFrequently: true }) as CanvasRenderingContext2D
   const image = context.getImageData(0, 0, canvas.width, canvas.height)
@@ -69,17 +75,24 @@ export function recolorForTheme(canvas: HTMLCanvasElement, theme: ReaderTheme): 
 
   for (let i = 0; i < data.length; i += 4) {
     if (data[i + 3] < 8) continue
-    const r = data[i]
-    const g = data[i + 1]
-    const b = data[i + 2]
+    let r = data[i]
+    let g = data[i + 1]
+    let b = data[i + 2]
+
     const max = Math.max(r, g, b)
     const min = Math.min(r, g, b)
-    if (max - min > SATURATION_THRESHOLD) continue
+    const grayscale = max - min <= SATURATION_THRESHOLD
 
-    const ink = Math.min(1, Math.max(0, 1 - luminance({ r, g, b }) / sourceLuminance))
-    data[i] = backgroundTarget.r + (textTarget.r - backgroundTarget.r) * ink
-    data[i + 1] = backgroundTarget.g + (textTarget.g - backgroundTarget.g) * ink
-    data[i + 2] = backgroundTarget.b + (textTarget.b - backgroundTarget.b) * ink
+    if (remap && grayscale) {
+      const ink = Math.min(1, Math.max(0, 1 - luminance({ r, g, b }) / sourceLuminance))
+      r = backgroundTarget.r + (textTarget.r - backgroundTarget.r) * ink
+      g = backgroundTarget.g + (textTarget.g - backgroundTarget.g) * ink
+      b = backgroundTarget.b + (textTarget.b - backgroundTarget.b) * ink
+    }
+
+    data[i] = backgroundTarget.r + (r - backgroundTarget.r) * alpha
+    data[i + 1] = backgroundTarget.g + (g - backgroundTarget.g) * alpha
+    data[i + 2] = backgroundTarget.b + (b - backgroundTarget.b) * alpha
   }
 
   context.putImageData(image, 0, 0)

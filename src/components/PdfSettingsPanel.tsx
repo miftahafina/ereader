@@ -52,6 +52,16 @@ export function PdfSettingsPanel({ settings, onChange }: PdfSettingsPanelProps) 
         onChange={(pdfZoom) => onChange({ pdfZoom })}
       />
 
+      <SliderSetting
+        label="Transparansi teks"
+        display={`${settings.fontOpacity}%`}
+        min={10}
+        max={100}
+        step={5}
+        value={settings.fontOpacity}
+        onChange={(fontOpacity) => onChange({ fontOpacity })}
+      />
+
       <SettingRow label="Hapus margin teks">
         <input
           type="checkbox"

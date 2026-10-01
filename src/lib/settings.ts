@@ -25,7 +25,15 @@ export const defaultSettings: ReaderSettings = {
 
 export const themePalette: Record<
   ReaderTheme,
-  { bg: string; text: string; link: string; muted: string; surface: string; border: string }
+  {
+    bg: string
+    text: string
+    link: string
+    muted: string
+    surface: string
+    border: string
+    readerBg: string
+  }
 > = {
   light: {
     bg: '#ffffff',
@@ -34,6 +42,7 @@ export const themePalette: Record<
     muted: '#6b7280',
     surface: '#ffffff',
     border: '#e5e7eb',
+    readerBg: '#ffffff',
   },
   sepia: {
     bg: '#f6ecd6',
@@ -42,6 +51,7 @@ export const themePalette: Record<
     muted: '#8a7a63',
     surface: '#fbf5e6',
     border: '#e6d9bd',
+    readerBg: '#f6ecd6',
   },
   dark: {
     bg: '#121417',
@@ -50,6 +60,7 @@ export const themePalette: Record<
     muted: '#8b9099',
     surface: '#1a1d21',
     border: '#2a2e34',
+    readerBg: '#1c1c1e',
   },
 }
 
