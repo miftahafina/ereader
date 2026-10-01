@@ -41,13 +41,13 @@ export function Library({
         <div className="library-actions">
           <FullscreenButton />
           <button className="primary-btn" onClick={() => inputRef.current?.click()} disabled={importing}>
-            {importing ? 'Mengimpor…' : '+ Tambah EPUB'}
+            {importing ? 'Mengimpor…' : '+ Tambah EPUB/PDF'}
           </button>
         </div>
         <input
           ref={inputRef}
           type="file"
-          accept=".epub,application/epub+zip"
+          accept=".epub,.pdf,application/epub+zip,application/pdf"
           multiple
           hidden
           onChange={(event) => {
@@ -61,11 +61,11 @@ export function Library({
       {books.length === 0 ? (
         <div className="empty-state">
           <div className="empty-icon">📚</div>
-          <h2>Seret &amp; lepas file EPUB ke sini</h2>
+          <h2>Seret &amp; lepas file EPUB atau PDF ke sini</h2>
           <p>Semua file diproses langsung di browser dan tidak diunggah ke mana pun.</p>
           <div className="empty-actions">
             <button className="primary-btn" onClick={() => inputRef.current?.click()}>
-              Pilih file EPUB
+              Pilih file
             </button>
             <button className="ghost-btn" onClick={onLoadSamples} disabled={importing}>
               {importing ? 'Memuat…' : 'Baca buku sampel'}

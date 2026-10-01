@@ -16,6 +16,11 @@ export const defaultSettings: ReaderSettings = {
   ttsVoice: '',
   translateTo: 'id',
   debugMode: false,
+  pdfSpread: 'auto',
+  pdfCrop: false,
+  pdfCropMargin: 8,
+  pdfZoom: 1,
+  pdfReflow: false,
 }
 
 export const themePalette: Record<

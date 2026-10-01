@@ -1,10 +1,14 @@
 import { useCallback, useEffect, useState } from 'react'
 import { addBook, deleteBook, getAllProgress, listBooks } from '../lib/db'
 import { sampleBooks } from '../lib/samples'
-import type { BookMeta, ProgressRecord } from '../lib/types'
+import type { BookFormat, BookMeta, ProgressRecord } from '../lib/types'
 
-const isEpub = (file: File) =>
-  file.name.toLowerCase().endsWith('.epub') || file.type === 'application/epub+zip'
+const formatOf = (file: File): BookFormat | null => {
+  const name = file.name.toLowerCase()
+  if (name.endsWith('.epub') || file.type === 'application/epub+zip') return 'epub'
+  if (name.endsWith('.pdf') || file.type === 'application/pdf') return 'pdf'
+  return null
+}
 
 export function useLibrary() {
   const [books, setBooks] = useState<BookMeta[]>([])
@@ -31,22 +35,30 @@ export function useLibrary() {
 
   const importFiles = useCallback(
     async (files: File[]) => {
-      const epubs = files.filter(isEpub)
-      const rejected = files.length - epubs.length
-      if (epubs.length === 0) {
-        setMessage('Hanya file .epub yang didukung.')
+      const supported: { file: File; format: BookFormat }[] = []
+      for (const file of files) {
+        const format = formatOf(file)
+        if (format) supported.push({ file, format })
+      }
+      const rejected = files.length - supported.length
+      if (supported.length === 0) {
+        setMessage('Hanya file .epub dan .pdf yang didukung.')
         return
       }
 
       setImporting(true)
       const { extractMetadata } = await import('../lib/epub')
+      const { extractPdfMetadata } = await import('../lib/pdf')
       let added = 0
       const failed: string[] = []
 
-      for (const file of epubs) {
+      for (const { file, format } of supported) {
         try {
           const data = await file.arrayBuffer()
-          const meta = await extractMetadata(data.slice(0))
+          const meta =
+            format === 'pdf'
+              ? await extractPdfMetadata(data.slice(0))
+              : await extractMetadata(data.slice(0))
           await addBook({
             id: crypto.randomUUID(),
             title: meta.title,
@@ -55,6 +67,7 @@ export function useLibrary() {
             size: file.size,
             addedAt: Date.now(),
             cover: meta.cover,
+            format,
             data,
           })
           added += 1

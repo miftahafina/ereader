@@ -1,0 +1,88 @@
+/* ---------- PDF reader ---------- */
+.pdf-stage {
+  overflow: hidden;
+}
+
+.pdf-spread {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: stretch;
+}
+
+.pdf-spread[data-columns='1'] {
+  flex-direction: column;
+}
+
+.pdf-page {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  overflow: auto;
+  padding: 12px;
+}
+
+.pdf-spread[data-columns='2'] .pdf-page + .pdf-page {
+  border-left: 1px solid var(--border);
+}
+
+.pdf-canvas {
+  display: block;
+  max-width: 100%;
+  border-radius: 2px;
+}
+
+.pdf-reflow {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  overflow-y: auto;
+  background: var(--reader-bg);
+}
+
+.pdf-reflow-inner {
+  max-width: 46rem;
+  margin: 0 auto;
+  padding: 32px 24px 72px;
+  color: var(--text);
+}
+
+.pdf-reflow-page + .pdf-reflow-page {
+  margin-top: 1.6em;
+  padding-top: 1.6em;
+  border-top: 1px solid var(--border);
+}
+
+.pdf-reflow-inner h3 {
+  margin: 1.4em 0 0.5em;
+  font-size: 1.15em;
+}
+
+.pdf-reflow-inner p {
+  margin: 0 0 0.7em;
+}
+
+.pdf-reflow-status,
+.pdf-reflow-progress {
+  color: var(--text-muted);
+  font-size: 13px;
+  text-align: center;
+}
+
+.pdf-reflow-progress {
+  position: sticky;
+  bottom: 8px;
+  margin: 0 auto 8px;
+  width: fit-content;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: var(--surface);
+  backdrop-filter: var(--glass-blur);
+}
+
+.nav-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}

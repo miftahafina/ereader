@@ -1,3 +1,5 @@
+export type BookFormat = 'epub' | 'pdf'
+
 export interface BookRecord {
   id: string
   title: string
@@ -6,6 +8,7 @@ export interface BookRecord {
   size: number
   addedAt: number
   cover?: string
+  format?: BookFormat
   data: ArrayBuffer
 }
 
@@ -14,6 +17,7 @@ export type BookMeta = Omit<BookRecord, 'data'>
 export interface ProgressRecord {
   id: string
   cfi?: string
+  page?: number
   percentage: number
   updatedAt: number
 }
@@ -23,6 +27,8 @@ export type ReaderTheme = 'light' | 'sepia' | 'dark'
 export type FlowMode = 'paginated' | 'scrolled'
 
 export type TextAlign = 'default' | 'left' | 'center' | 'right' | 'justify'
+
+export type PdfSpreadMode = 'auto' | 'single' | 'double'
 
 export interface ReaderSettings {
   theme: ReaderTheme
@@ -40,4 +46,9 @@ export interface ReaderSettings {
   ttsVoice: string
   translateTo: string
   debugMode: boolean
+  pdfSpread: PdfSpreadMode
+  pdfCrop: boolean
+  pdfCropMargin: number
+  pdfZoom: number
+  pdfReflow: boolean
 }

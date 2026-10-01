@@ -46,6 +46,7 @@ export async function listBooks(): Promise<BookMeta[]> {
       size: b.size,
       addedAt: b.addedAt,
       cover: b.cover,
+      format: b.format,
     })
     cursor = await cursor.continue()
   }
