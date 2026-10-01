@@ -93,7 +93,7 @@ export function PdfPage({
         display = cropCanvas(rendered.canvas, rect, marginDevice)
       }
 
-      if (!imageOnly) recolorForTheme(display, theme, fontOpacity / 100)
+      recolorForTheme(display, theme, fontOpacity / 100, !imageOnly)
 
       const logicalWidth = display.width / renderScale
       const logicalHeight = display.height / renderScale

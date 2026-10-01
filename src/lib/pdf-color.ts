@@ -58,6 +58,7 @@ export function recolorForTheme(
   canvas: HTMLCanvasElement,
   theme: ReaderTheme,
   opacity = 1,
+  remap = true,
 ): void {
   const alpha = Math.min(1, Math.max(0, opacity))
   if (theme === 'light' && alpha >= 1) return
@@ -65,12 +66,14 @@ export function recolorForTheme(
   const palette = themePalette[theme]
   const backgroundTarget = hexToRgb(palette.readerBg)
   const textTarget = hexToRgb(palette.text)
-  const remap = theme !== 'light'
+  const doRemap = remap && theme !== 'light'
 
   const context = canvas.getContext('2d', { willReadFrequently: true }) as CanvasRenderingContext2D
   const image = context.getImageData(0, 0, canvas.width, canvas.height)
   const data = image.data
-  const source = sampleBackground(data, canvas.width, canvas.height)
+  const source = doRemap
+    ? sampleBackground(data, canvas.width, canvas.height)
+    : { r: 255, g: 255, b: 255 }
   const sourceLuminance = Math.max(1, luminance(source))
 
   for (let i = 0; i < data.length; i += 4) {
@@ -83,7 +86,7 @@ export function recolorForTheme(
     const min = Math.min(r, g, b)
     const grayscale = max - min <= SATURATION_THRESHOLD
 
-    if (remap && grayscale) {
+    if (doRemap && grayscale) {
       const ink = Math.min(1, Math.max(0, 1 - luminance({ r, g, b }) / sourceLuminance))
       r = backgroundTarget.r + (textTarget.r - backgroundTarget.r) * ink
       g = backgroundTarget.g + (textTarget.g - backgroundTarget.g) * ink
