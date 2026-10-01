@@ -38,29 +38,40 @@
   flex: 1;
   min-width: 0;
   height: 100%;
-  overflow-y: auto;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
   background: var(--reader-bg);
+  position: relative;
 }
 
-.pdf-reflow-inner {
-  max-width: 46rem;
-  margin: 0 auto;
-  padding: 32px 24px 72px;
+.pdf-reflow-window {
+  overflow: hidden;
+  position: relative;
+}
+
+.pdf-reflow-content {
+  position: relative;
+  column-fill: auto;
   color: var(--text);
+  transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .pdf-reflow-page + .pdf-reflow-page {
   margin-top: 1.6em;
-  padding-top: 1.6em;
-  border-top: 1px solid var(--border);
 }
 
-.pdf-reflow-inner h3 {
+.pdf-reflow-content h3 {
   margin: 1.4em 0 0.5em;
   font-size: 1.15em;
 }
 
-.pdf-reflow-inner p {
+.pdf-reflow-content h3:first-child {
+  margin-top: 0;
+}
+
+.pdf-reflow-content p {
   margin: 0 0 0.7em;
 }
 
@@ -71,10 +82,18 @@
   text-align: center;
 }
 
+.pdf-reflow-status {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
 .pdf-reflow-progress {
-  position: sticky;
+  position: absolute;
   bottom: 8px;
-  margin: 0 auto 8px;
+  left: 50%;
+  transform: translateX(-50%);
   width: fit-content;
   padding: 4px 12px;
   border-radius: 999px;

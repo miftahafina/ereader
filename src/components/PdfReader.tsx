@@ -1,8 +1,9 @@
 import type { PDFPageProxy } from 'pdfjs-dist'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { usePdfDocument } from '../hooks/usePdfDocument'
 import { usePdfProgress } from '../hooks/usePdfProgress'
 import { usePdfReflow } from '../hooks/usePdfReflow'
+import { usePdfReflowPager } from '../hooks/usePdfReflowPager'
 import { usePdfView } from '../hooks/usePdfView'
 import { useReaderChrome } from '../hooks/useReaderChrome'
 import { literataFontFaces } from '../lib/fontFaces'
@@ -29,10 +30,31 @@ export function PdfReader({ bookId, settings, onSettingsChange, onClose }: PdfRe
   const { load, schedule, flush } = usePdfProgress(bookId)
 
   const [pageProxies, setPageProxies] = useState<Record<number, PDFPageProxy | null>>({})
-  const [reflowFraction, setReflowFraction] = useState(0)
-  const reflowRef = useRef<HTMLDivElement>(null)
   const loadedRef = useRef(false)
   const setPageRef = useRef(view.setPage)
+
+  const reflowLayoutKey = [
+    reflow.sections.length,
+    settings.fontSize,
+    settings.lineHeight,
+    settings.fontFamily,
+    settings.textAlign,
+    settings.maxWidth,
+  ].join('|')
+  const {
+    viewportRef: reflowViewportRef,
+    contentRef: reflowContentRef,
+    endRef: reflowEndRef,
+    page: reflowPage,
+    total: reflowTotal,
+    goNext: reflowNext,
+    goPrev: reflowPrev,
+    canPrev: reflowCanPrev,
+    canNext: reflowCanNext,
+    percentage: reflowPercentage,
+    windowStyle: reflowWindowStyle,
+    contentStyle: reflowContentStyle,
+  } = usePdfReflowPager(settings.pdfReflow, settings.maxWidth, reflowLayoutKey)
 
   useEffect(() => {
     setPageRef.current = view.setPage
@@ -84,17 +106,11 @@ export function PdfReader({ bookId, settings, onSettingsChange, onClose }: PdfRe
 
   useEffect(() => {
     if (!doc || !settings.pdfReflow || !loadedRef.current) return
-    const page = Math.round(reflowFraction * (view.numPages - 1)) + 1
-    schedule(page, reflowFraction)
-  }, [doc, settings.pdfReflow, reflowFraction, view.numPages, schedule])
+    const page = Math.round(reflowPercentage * (view.numPages - 1)) + 1
+    schedule(page, reflowPercentage)
+  }, [doc, settings.pdfReflow, reflowPercentage, view.numPages, schedule])
 
   useEffect(() => () => flush(), [flush])
-
-  const scrollReflow = useCallback((dir: 1 | -1) => {
-    const element = reflowRef.current
-    if (!element) return
-    element.scrollBy({ top: element.clientHeight * 0.9 * dir, behavior: 'smooth' })
-  }, [])
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -104,17 +120,17 @@ export function PdfReader({ bookId, settings, onSettingsChange, onClose }: PdfRe
       }
       if (event.key === 'ArrowRight' || event.key === 'PageDown') {
         event.preventDefault()
-        if (settings.pdfReflow) scrollReflow(1)
+        if (settings.pdfReflow) reflowNext()
         else view.goNext()
       } else if (event.key === 'ArrowLeft' || event.key === 'PageUp') {
         event.preventDefault()
-        if (settings.pdfReflow) scrollReflow(-1)
+        if (settings.pdfReflow) reflowPrev()
         else view.goPrev()
       }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [settings.pdfReflow, scrollReflow, view, chrome])
+  }, [settings.pdfReflow, reflowNext, reflowPrev, view, chrome])
 
   const touchStartX = useRef<number | null>(null)
   const handleTouchStart = (event: React.TouchEvent) => {
@@ -125,19 +141,14 @@ export function PdfReader({ bookId, settings, onSettingsChange, onClose }: PdfRe
     const delta = event.changedTouches[0].clientX - touchStartX.current
     touchStartX.current = null
     if (Math.abs(delta) < 50) return
-    if (settings.pdfReflow) scrollReflow(delta < 0 ? 1 : -1)
-    else if (delta < 0) view.goNext()
+    if (settings.pdfReflow) {
+      if (delta < 0) reflowNext()
+      else reflowPrev()
+    } else if (delta < 0) view.goNext()
     else view.goPrev()
   }
 
-  const handleReflowScroll = () => {
-    const element = reflowRef.current
-    if (!element) return
-    const max = element.scrollHeight - element.clientHeight
-    setReflowFraction(max > 0 ? element.scrollTop / max : 0)
-  }
-
-  const displayPercentage = settings.pdfReflow ? reflowFraction : view.percentage
+  const displayPercentage = settings.pdfReflow ? reflowPercentage : view.percentage
   const fontStack = fontOptions.find((option) => option.value === settings.fontFamily)?.stack ?? ''
   const reflowStyle: React.CSSProperties = {
     fontSize: `${settings.fontSize}%`,
@@ -191,21 +202,30 @@ export function PdfReader({ bookId, settings, onSettingsChange, onClose }: PdfRe
           onTouchEnd={handleTouchEnd}
         >
           {settings.pdfReflow ? (
-            <div className="pdf-reflow" ref={reflowRef} onScroll={handleReflowScroll}>
-              <div className="pdf-reflow-inner" style={reflowStyle}>
-                {reflow.sections.map((section) => (
-                  <section key={section.page} className="pdf-reflow-page">
-                    {section.blocks.map((block, index) =>
-                      block.kind === 'heading' ? (
-                        <h3 key={index}>{block.text}</h3>
-                      ) : (
-                        <p key={index}>{block.text}</p>
-                      ),
-                    )}
-                  </section>
-                ))}
-                {reflow.sections.length === 0 && <p className="pdf-reflow-status">Menyiapkan teks…</p>}
+            <div className="pdf-reflow" ref={reflowViewportRef}>
+              <div className="pdf-reflow-window" style={reflowWindowStyle}>
+                <div
+                  className="pdf-reflow-content"
+                  ref={reflowContentRef}
+                  style={{ ...reflowContentStyle, ...reflowStyle }}
+                >
+                  {reflow.sections.map((section) => (
+                    <section key={section.page} className="pdf-reflow-page">
+                      {section.blocks.map((block, index) =>
+                        block.kind === 'heading' ? (
+                          <h3 key={index}>{block.text}</h3>
+                        ) : (
+                          <p key={index}>{block.text}</p>
+                        ),
+                      )}
+                    </section>
+                  ))}
+                  <span className="pdf-reflow-end" ref={reflowEndRef} />
+                </div>
               </div>
+              {reflow.sections.length === 0 && (
+                <p className="pdf-reflow-status">Menyiapkan teks…</p>
+              )}
               {reflow.loaded < reflow.total && (
                 <div className="pdf-reflow-progress">
                   Menyalin teks {reflow.loaded}/{reflow.total}…
@@ -245,8 +265,8 @@ export function PdfReader({ bookId, settings, onSettingsChange, onClose }: PdfRe
       <footer className="reader-bottom">
         <button
           className="nav-btn"
-          onClick={() => (settings.pdfReflow ? scrollReflow(-1) : view.goPrev())}
-          disabled={!settings.pdfReflow && !view.canPrev}
+          onClick={() => (settings.pdfReflow ? reflowPrev() : view.goPrev())}
+          disabled={settings.pdfReflow ? !reflowCanPrev : !view.canPrev}
           aria-label="Sebelumnya"
         >
           ‹
@@ -256,13 +276,13 @@ export function PdfReader({ bookId, settings, onSettingsChange, onClose }: PdfRe
         </div>
         <span className="progress-label">
           {settings.pdfReflow
-            ? `${Math.round(displayPercentage * 100)}%`
+            ? `${reflowPage + 1}/${reflowTotal}`
             : `${view.page}/${view.numPages}`}
         </span>
         <button
           className="nav-btn"
-          onClick={() => (settings.pdfReflow ? scrollReflow(1) : view.goNext())}
-          disabled={!settings.pdfReflow && !view.canNext}
+          onClick={() => (settings.pdfReflow ? reflowNext() : view.goNext())}
+          disabled={settings.pdfReflow ? !reflowCanNext : !view.canNext}
           aria-label="Berikutnya"
         >
           ›
