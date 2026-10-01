@@ -144,9 +144,8 @@ const paths = {
   ),
   reflow: (
     <>
-      <path d="M4 6h16" />
-      <path d="M4 12h10a3 3 0 1 1 0 6h-4" />
-      <path d="M13 21l3-3-3-3" />
+      <path d="M5 4h12a3.5 3.5 0 0 1 0 7H9a3.5 3.5 0 0 0 0 7" />
+      <path d="M6 18l3 3 3-3" />
     </>
   ),
   reset: (
