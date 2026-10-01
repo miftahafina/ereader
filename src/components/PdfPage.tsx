@@ -12,13 +12,23 @@ interface PdfPageProps {
   zoom: number
   theme: ReaderTheme
   fontOpacity: number
+  imageOnly?: boolean
   onRendered?: () => void
 }
 
 const PANE_PADDING = 12
 const SUPERSAMPLE = 2
 
-export function PdfPage({ page, crop, cropMargin, zoom, theme, fontOpacity, onRendered }: PdfPageProps) {
+export function PdfPage({
+  page,
+  crop,
+  cropMargin,
+  zoom,
+  theme,
+  fontOpacity,
+  imageOnly = false,
+  onRendered,
+}: PdfPageProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const onRenderedRef = useRef(onRendered)
   const [size, setSize] = useState<{ width: number; height: number } | null>(null)
@@ -83,7 +93,7 @@ export function PdfPage({ page, crop, cropMargin, zoom, theme, fontOpacity, onRe
         display = cropCanvas(rendered.canvas, rect, marginDevice)
       }
 
-      recolorForTheme(display, theme, fontOpacity / 100)
+      if (!imageOnly) recolorForTheme(display, theme, fontOpacity / 100)
 
       const logicalWidth = display.width / renderScale
       const logicalHeight = display.height / renderScale
@@ -111,7 +121,7 @@ export function PdfPage({ page, crop, cropMargin, zoom, theme, fontOpacity, onRe
         // render task sudah selesai
       }
     }
-  }, [page, size, crop, cropMargin, zoom, theme, fontOpacity])
+  }, [page, size, crop, cropMargin, zoom, theme, fontOpacity, imageOnly])
 
   return <div className="pdf-page" ref={containerRef} />
 }

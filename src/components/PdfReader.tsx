@@ -7,6 +7,7 @@ import { usePdfReflowPager } from '../hooks/usePdfReflowPager'
 import { usePdfView } from '../hooks/usePdfView'
 import { useReaderChrome } from '../hooks/useReaderChrome'
 import { literataFontFaces } from '../lib/fontFaces'
+import { pageHasText } from '../lib/pdf'
 import { fontOptions } from '../lib/settings'
 import type { ReaderSettings } from '../lib/types'
 import { DebugPanel } from './DebugPanel'
@@ -30,6 +31,7 @@ export function PdfReader({ bookId, settings, onSettingsChange, onClose }: PdfRe
   const { load, schedule, flush } = usePdfProgress(bookId)
 
   const [pageProxies, setPageProxies] = useState<Record<number, PDFPageProxy | null>>({})
+  const [pageImageOnly, setPageImageOnly] = useState<Record<number, boolean>>({})
   const loadedRef = useRef(false)
   const setPageRef = useRef(view.setPage)
 
@@ -72,13 +74,17 @@ export function PdfReader({ bookId, settings, onSettingsChange, onClose }: PdfRe
     void Promise.all(
       pageNumbers.map(async (pageNumber) => {
         try {
-          return [pageNumber, await doc.getPage(pageNumber)] as const
+          const page = await doc.getPage(pageNumber)
+          const hasText = await pageHasText(page)
+          return [pageNumber, page, !hasText] as const
         } catch {
-          return [pageNumber, null] as const
+          return [pageNumber, null, true] as const
         }
       }),
     ).then((entries) => {
-      if (!cancelled) setPageProxies(Object.fromEntries(entries))
+      if (cancelled) return
+      setPageProxies(Object.fromEntries(entries.map(([pageNumber, page]) => [pageNumber, page])))
+      setPageImageOnly(Object.fromEntries(entries.map(([pageNumber, , imageOnly]) => [pageNumber, imageOnly])))
     })
     return () => {
       cancelled = true
@@ -209,17 +215,23 @@ export function PdfReader({ bookId, settings, onSettingsChange, onClose }: PdfRe
                   ref={reflowContentRef}
                   style={{ ...reflowContentStyle, ...reflowStyle }}
                 >
-                  {reflow.sections.map((section) => (
-                    <section key={section.page} className="pdf-reflow-page">
-                      {section.blocks.map((block, index) =>
-                        block.kind === 'heading' ? (
-                          <h3 key={index}>{block.text}</h3>
-                        ) : (
-                          <p key={index}>{block.text}</p>
-                        ),
-                      )}
-                    </section>
-                  ))}
+                  {reflow.sections.map((section) =>
+                    section.blocks.length > 0 ? (
+                      <section key={section.page} className="pdf-reflow-page">
+                        {section.blocks.map((block, index) =>
+                          block.kind === 'heading' ? (
+                            <h3 key={index}>{block.text}</h3>
+                          ) : (
+                            <p key={index}>{block.text}</p>
+                          ),
+                        )}
+                      </section>
+                    ) : (
+                      <section key={section.page} className="pdf-reflow-page pdf-reflow-scan">
+                        Halaman {section.page}: hasil scan tanpa teks — buka mode normal untuk melihat gambar.
+                      </section>
+                    ),
+                  )}
                   <span className="pdf-reflow-end" ref={reflowEndRef} />
                 </div>
               </div>
@@ -243,6 +255,7 @@ export function PdfReader({ bookId, settings, onSettingsChange, onClose }: PdfRe
                   zoom={settings.pdfZoom}
                   theme={settings.theme}
                   fontOpacity={settings.fontOpacity}
+                  imageOnly={pageImageOnly[pageNumber] ?? false}
                 />
               ))}
               {pageNumbers.length === 0 && !loading && !error && (

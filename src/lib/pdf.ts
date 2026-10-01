@@ -4,6 +4,15 @@ import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
 
 pdfjs.GlobalWorkerOptions.workerSrc = workerUrl
 
+const assetBase = `${import.meta.env.BASE_URL}pdfjs/`
+
+const documentOptions = {
+  wasmUrl: `${assetBase}wasm/`,
+  standardFontDataUrl: `${assetBase}standard_fonts/`,
+  cMapUrl: `${assetBase}cmaps/`,
+  cMapPacked: true,
+} as const
+
 export interface PdfMetadata {
   title: string
   author: string
@@ -23,7 +32,7 @@ export interface RenderedPage {
 }
 
 export function loadPdfDocument(data: ArrayBuffer): Promise<PDFDocumentProxy> {
-  const task = pdfjs.getDocument({ data: new Uint8Array(data.slice(0)) })
+  const task = pdfjs.getDocument({ data: new Uint8Array(data.slice(0)), ...documentOptions })
   return task.promise
 }
 
@@ -34,6 +43,20 @@ export function renderPage(page: PDFPageProxy, scale: number, background = '#fff
   canvas.height = Math.max(1, Math.floor(viewport.height))
   const task = page.render({ canvas, viewport, background })
   return { canvas, task }
+}
+
+export async function pageHasText(page: PDFPageProxy, minimum = 20): Promise<boolean> {
+  try {
+    const content = await page.getTextContent()
+    let chars = 0
+    for (const item of content.items) {
+      if ('str' in item) chars += item.str.trim().length
+      if (chars >= minimum) return true
+    }
+    return chars > 0
+  } catch {
+    return false
+  }
 }
 
 async function renderPageToDataUrl(page: PDFPageProxy, targetWidth: number): Promise<string> {
