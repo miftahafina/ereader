@@ -29,6 +29,7 @@ interface EpubRenditionOptions {
   settingsRef: LatestRef<ReaderSettings>
   viewerRef: ElementRef<HTMLDivElement>
   renditionRef: ElementRef<Rendition>
+  bookRef: ElementRef<Book>
   handlers: ReaderHandlers
 }
 
@@ -38,6 +39,7 @@ export function useEpubRendition({
   settingsRef,
   viewerRef,
   renditionRef,
+  bookRef,
   handlers,
 }: EpubRenditionOptions) {
   const handlersRef = useLatest(handlers)
@@ -79,6 +81,7 @@ export function useEpubRendition({
 
       const epubBook = ePub(loaded.data)
       localBook = epubBook
+      bookRef.current = epubBook
 
       await epubBook.ready
       if (cancelled) return
@@ -178,8 +181,9 @@ export function useEpubRendition({
       localRendition?.destroy()
       localBook?.destroy()
       renditionRef.current = null
+      bookRef.current = null
     }
-  }, [bookId, flow, settingsRef, viewerRef, renditionRef, handlersRef, load, schedule, flush])
+  }, [bookId, flow, settingsRef, viewerRef, renditionRef, bookRef, handlersRef, load, schedule, flush])
 
   return { record, toc, percentage, currentHref, loading, error }
 }

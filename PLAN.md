@@ -65,11 +65,11 @@ File .epub (drag & drop)
 - [x] Layout 2 kolom otomatis di desktop/tablet landscape
 - [x] Tombol volume (best-effort) & toggle toolbar via tap tengah
 - [x] Layar penuh (Fullscreen API) di library & reader
+- [x] Pencarian teks lintas bagian dengan daftar hasil & sorotan
 - [x] Konfigurasi Cloudflare Pages
 
 ### Roadmap (belum)
 - [ ] Bookmark & anotasi (highlight) per CFI
-- [ ] Pencarian teks di dalam buku
 - [ ] Upload font kustom (disimpan di IndexedDB)
 - [ ] Ekspor/impor data perpustakaan & progres (JSON)
 - [ ] Statistik baca (waktu, halaman) & target harian

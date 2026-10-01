@@ -1,6 +1,7 @@
 import { useReaderSession } from '../hooks/useReaderSession'
 import type { ReaderSettings } from '../lib/types'
 import { SettingsPanel } from './SettingsPanel'
+import { SearchPanel } from './SearchPanel'
 import { Toc } from './Toc'
 import { FullscreenButton } from './FullscreenButton'
 import { WordPopup } from './WordPopup'
@@ -21,10 +22,8 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
     currentHref,
     loading,
     error,
-    showToc,
-    setShowToc,
-    showSettings,
-    setShowSettings,
+    panel,
+    togglePanel,
     chromeHidden,
     twoColumn,
     stageMaxWidth,
@@ -42,6 +41,14 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
     toggleTts,
     debugLog,
     isCoarse,
+    searchQuery,
+    setSearchQuery,
+    searchResults,
+    searchStatus,
+    searchProgress,
+    runSearch,
+    clearSearch,
+    selectSearchResult,
   } = useReaderSession(bookId, settings)
 
   return (
@@ -56,21 +63,35 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
         </div>
         <div className="reader-actions">
           <button
-            className={`icon-btn ${showToc ? 'active' : ''}`}
-            onClick={() => {
-              setShowToc((value) => !value)
-              setShowSettings(false)
-            }}
+            className={`icon-btn ${panel === 'toc' ? 'active' : ''}`}
+            onClick={() => togglePanel('toc')}
             aria-label="Daftar isi"
           >
             ☰
           </button>
           <button
-            className={`icon-btn ${showSettings ? 'active' : ''}`}
-            onClick={() => {
-              setShowSettings((value) => !value)
-              setShowToc(false)
-            }}
+            className={`icon-btn ${panel === 'search' ? 'active' : ''}`}
+            onClick={() => togglePanel('search')}
+            aria-label="Cari di dalam buku"
+          >
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="11" cy="11" r="7" />
+              <path d="m21 21-4.3-4.3" />
+            </svg>
+          </button>
+          <button
+            className={`icon-btn ${panel === 'settings' ? 'active' : ''}`}
+            onClick={() => togglePanel('settings')}
             aria-label="Pengaturan"
           >
             Aa
@@ -80,9 +101,24 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
       </header>
 
       <div className="reader-body" ref={bodyRef}>
-        {showToc && (
+        {panel === 'toc' && (
           <aside className="reader-sidebar">
             <Toc items={toc} currentHref={currentHref} onSelect={handleTocSelect} />
+          </aside>
+        )}
+
+        {panel === 'search' && (
+          <aside className="reader-sidebar">
+            <SearchPanel
+              query={searchQuery}
+              onQueryChange={setSearchQuery}
+              onSearch={runSearch}
+              onClear={clearSearch}
+              results={searchResults}
+              status={searchStatus}
+              progress={searchProgress}
+              onSelect={(result) => void selectSearchResult(result)}
+            />
           </aside>
         )}
 
@@ -93,7 +129,7 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
           {error && <div className="reader-overlay error">{error}</div>}
         </div>
 
-        {showSettings && (
+        {panel === 'settings' && (
           <aside className="reader-sidebar settings-sidebar">
             <SettingsPanel settings={settings} onChange={onSettingsChange} />
           </aside>

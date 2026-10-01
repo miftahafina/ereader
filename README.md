@@ -8,6 +8,7 @@ Pembaca EPUB yang berjalan **sepenuhnya di browser**. Cukup seret (drag & drop) 
 - Buku sampel bawaan siap baca (Alice in Wonderland, The Time Machine, Pride and Prejudice)
 - Perpustakaan lokal: sampul, judul, penulis, dan progres (IndexedDB)
 - Daftar isi (TOC) rekursif + lompat bab
+- Pencarian teks di seluruh buku dengan daftar hasil & sorotan lompatan
 - Simpan & lanjutkan posisi baca (CFI)
 - Tema: terang, sepia, gelap
 - Font **Literata** default, plus opsi font lain
@@ -66,6 +67,7 @@ src/
     reader-theme.ts         CSS tema/font reader untuk iframe
     reader-constants.ts     konstanta reader (SPREAD_*, IS_WEBKIT)
     tts-text.ts             ekstraksi teks terlihat dari iframe -> chunk TTS
+    search.ts               pencarian teks lintas section (Section.find)
     samples.ts              buku sampel bawaan
     settings.ts             default & persist pengaturan (localStorage)
     translate.ts            penerjemahan (Google Translate endpoint)
@@ -76,9 +78,9 @@ src/
                             useVoices, useReaderSession, useEpubRendition,
                             useReadingProgress, useReaderChrome, useReaderLayout,
                             useReaderNavigation, useReaderTts, useSectionTranslation,
-                            useWordLookup, useLibrary, useReaderSettings, useTheme
+                            useWordLookup, useBookSearch, useLibrary, useReaderSettings, useTheme
   components/
-    Library.tsx, Reader.tsx, Toc.tsx, SettingsPanel.tsx,
+    Library.tsx, Reader.tsx, Toc.tsx, SearchPanel.tsx, SettingsPanel.tsx,
     SettingsControls.tsx, FullscreenButton.tsx, WordPopup.tsx, DebugPanel.tsx
 public/                     _redirects, _headers, favicon, icons, translate icons, samples/*.epub
 wrangler.jsonc              konfigurasi Cloudflare Pages

@@ -35,7 +35,7 @@ src/
   index.css                entry styling, @import ke src/styles/*
   styles/                  CSS modular: theme, base, buttons, library,
                            reader, reader-popup, reader-chrome, toc,
-                           settings, overlays, responsive
+                           search, settings, overlays, responsive
   lib/
     types.ts               tipe bersama (BookRecord, ReaderSettings, dll)
     db.ts                  IndexedDB: store `books` & `progress`
@@ -45,6 +45,7 @@ src/
     reader-theme.ts        buildReaderCss + applyReaderTheme untuk iframe
     reader-constants.ts    konstanta reader (SPREAD_*, IS_WEBKIT)
     tts-text.ts            ekstraksi teks terlihat dari iframe -> chunk TTS
+    search.ts              pencarian teks lintas section (Section.find)
     translate.ts           penerjemahan (Google Translate endpoint)
     translate-dom.ts       injeksi hasil terjemahan ke iframe
     dictionary.ts          definisi kata (Wiktionary API)
@@ -64,6 +65,7 @@ src/
     useReaderTts.ts        text-to-speech (Web Speech API)
     useSectionTranslation.ts terjemahan per bagian in-place
     useWordLookup.ts       popup kamus Wiktionary
+    useBookSearch.ts       pencarian teks dalam buku (status, hasil, progres)
     useLibrary.ts          data perpustakaan (IndexedDB), impor, sampel, hapus
     useReaderSettings.ts   state + persist pengaturan
     useTheme.ts            tulis data-theme & meta[theme-color]
@@ -73,6 +75,7 @@ src/
     Toc.tsx                daftar isi rekursif
     SettingsPanel.tsx      kontrol tampilan
     SettingsControls.tsx   primitif form setelan (slider, segmented, select)
+    SearchPanel.tsx        panel pencarian teks dalam buku
     FullscreenButton.tsx   tombol layar penuh (hidden bila tidak didukung)
     WordPopup.tsx          popup definisi kata
     DebugPanel.tsx         panel debug TTS (aktif bila `debugMode`)
