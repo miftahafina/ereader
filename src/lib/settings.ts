@@ -64,7 +64,7 @@ export const themePalette: Record<
     border: '#2a2e34',
     readerBg: '#1c1c1e',
   },
-  eink: {
+  ink: {
     bg: '#DCDCD5',
     text: '#242424',
     link: '#242424',
