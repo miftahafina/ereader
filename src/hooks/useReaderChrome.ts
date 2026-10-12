@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react'
 
-export type ReaderPanel = 'toc' | 'search' | 'settings'
+export type ReaderPanel = 'toc' | 'search' | 'settings' | 'bookmarks'
 
 export function useReaderChrome() {
   const [panel, setPanel] = useState<ReaderPanel | null>(null)
