@@ -113,19 +113,22 @@ export const textAlignOptions: { value: TextAlign; label: string }[] = [
 
 const STORAGE_KEY = 'ereader-web:settings'
 
+function parseDarkBackground(value: unknown): DarkBackground {
+  if (value === 'gray') return 3
+  if (value === 'black') return 1
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    const level = Math.round(value)
+    if (level >= 1 && level <= 5) return level as DarkBackground
+  }
+  return defaultSettings.darkBackground
+}
+
 export function loadSettings(): ReaderSettings {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return { ...defaultSettings }
     const parsed = JSON.parse(raw) as Partial<ReaderSettings> & { darkBackground?: unknown }
-    const darkBackground =
-      parsed.darkBackground === 'gray'
-        ? 3
-        : parsed.darkBackground === 'black'
-          ? 1
-          : typeof parsed.darkBackground === 'number' && parsed.darkBackground >= 1 && parsed.darkBackground <= 5
-            ? (Math.round(parsed.darkBackground) as DarkBackground)
-            : defaultSettings.darkBackground
+    const darkBackground = parseDarkBackground(parsed.darkBackground)
     return { ...defaultSettings, ...parsed, darkBackground }
   } catch {
     return { ...defaultSettings }
