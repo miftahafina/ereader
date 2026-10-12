@@ -15,7 +15,7 @@ export function useTheme(theme: ReaderTheme, darkBackground: DarkBackground) {
 
     const color =
       theme === 'dark'
-        ? getThemePalette(theme, darkBackground).bg
+        ? darkBackground === 1 ? '#000000' : getThemePalette(theme, darkBackground).bg
         : (THEME_COLORS[theme] ?? THEME_COLORS.light)
     const metaThemeColor = document.querySelector('meta[name="theme-color"]')
     if (metaThemeColor) {
