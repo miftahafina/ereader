@@ -57,6 +57,7 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
     addBookmark,
     removeBookmark,
     selectBookmark,
+    isBookmarked,
   } = useReaderSession(bookId, settings)
 
   return (
@@ -102,7 +103,7 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
             onClick={() => togglePanel('bookmarks')}
             aria-label="Bookmark"
           >
-            <BookmarkIcon />
+            <BookmarkIcon filled={isBookmarked} />
           </button>
           <button
             className={`icon-btn ${panel === 'settings' ? 'active' : ''}`}
