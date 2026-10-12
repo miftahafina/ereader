@@ -254,6 +254,7 @@ export function PdfReader({ bookId, settings, onSettingsChange, onClose }: PdfRe
                   cropMargin={settings.pdfCropMargin}
                   zoom={settings.pdfZoom}
                   theme={settings.theme}
+                  darkBackground={settings.darkBackground}
                   fontOpacity={settings.fontOpacity}
                   imageOnly={pageImageOnly[pageNumber] ?? false}
                   scanTheme={settings.pdfScanTheme}
