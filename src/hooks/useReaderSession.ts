@@ -139,6 +139,10 @@ export function useReaderSession(bookId: string, settings: ReaderSettings) {
     [clearHighlight],
   )
 
+  const isBookmarked = bookmarkRecords.some(
+    (bookmark) => bookmark.cfi === engine.currentCfi,
+  )
+
   useEffect(() => {
     if (renditionRef.current) applyReaderTheme(renditionRef.current, settings)
   }, [settings])
@@ -158,6 +162,7 @@ export function useReaderSession(bookId: string, settings: ReaderSettings) {
     toc: engine.toc,
     percentage: engine.percentage,
     currentHref: engine.currentHref,
+    currentCfi: engine.currentCfi,
     loading: engine.loading,
     error: engine.error,
     panel: chrome.panel,
@@ -194,5 +199,6 @@ export function useReaderSession(bookId: string, settings: ReaderSettings) {
     addBookmark,
     removeBookmark: removeStoredBookmark,
     selectBookmark,
+    isBookmarked,
   }
 }
