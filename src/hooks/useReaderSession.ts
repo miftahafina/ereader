@@ -1,4 +1,4 @@
-import type { Book, Rendition } from 'epubjs'
+import type { Book, Contents, Rendition } from 'epubjs'
 import { useCallback, useEffect, useRef } from 'react'
 import { applyReaderTheme } from '../lib/reader-theme'
 import type { SearchResult } from '../lib/search'
@@ -14,6 +14,44 @@ import { useReaderNavigation } from './useReaderNavigation'
 import { useReaderTts } from './useReaderTts'
 import { useSectionTranslation } from './useSectionTranslation'
 import { useWordLookup } from './useWordLookup'
+
+function firstWordCfi(rendition: Rendition, cfi: string): string {
+  try {
+    const range = rendition.getRange(cfi)
+    if (!range || range.startContainer.nodeType !== 3) return cfi
+
+    const textNode = range.startContainer
+    const text = textNode.textContent ?? ''
+    let offset = range.startOffset
+    if (!text.length || offset >= text.length) return cfi
+
+    if (!/\s/.test(text[offset] ?? '')) {
+      while (offset > 0 && !/\s/.test(text[offset - 1] ?? '')) offset -= 1
+    }
+
+    const match = /\S+/.exec(text.slice(offset))
+    if (!match) return cfi
+    const wordStart = offset + match.index
+    const document = textNode.ownerDocument
+    if (!document) return cfi
+
+    const wordRange = document.createRange()
+    wordRange.setStart(textNode, wordStart)
+    wordRange.setEnd(textNode, wordStart + match[0].length)
+    const rect = wordRange.getBoundingClientRect()
+    if (rect.width === 0 || rect.height === 0) return cfi
+
+    const anchorRange = document.createRange()
+    anchorRange.setStart(textNode, wordStart)
+    anchorRange.collapse(true)
+    const contents = (rendition.getContents() as unknown as Contents[]).find(
+      (item) => item.document === document,
+    )
+    return contents?.cfiFromRange(anchorRange) ?? cfi
+  } catch {
+    return cfi
+  }
+}
 
 export function useReaderSession(bookId: string, settings: ReaderSettings) {
   const settingsRef = useLatest(settings)
@@ -91,22 +129,24 @@ export function useReaderSession(bookId: string, settings: ReaderSettings) {
   )
 
   const addBookmark = useCallback(async () => {
-    const location = renditionRef.current?.currentLocation() as
+    const rendition = renditionRef.current
+    const location = rendition?.currentLocation() as
       | { start?: { cfi?: string } }
       | undefined
     const cfi = location?.start?.cfi
-    if (!cfi) return
+    if (!cfi || !rendition) return
     await addStoredBookmark({
       format: 'epub',
-      cfi,
+      cfi: firstWordCfi(rendition, cfi),
       percentage: engine.percentage,
       label: `Posisi ${Math.round(engine.percentage * 100)}%`,
     })
   }, [addStoredBookmark, engine.percentage])
 
   const selectBookmark = useCallback(
-    (bookmark: BookmarkRecord) => {
-      if (bookmark.cfi) void renditionRef.current?.display(bookmark.cfi)
+    async (bookmark: BookmarkRecord) => {
+      const rendition = renditionRef.current
+      if (bookmark.cfi && rendition) await rendition.display(bookmark.cfi)
       closePanel()
     },
     [closePanel],
