@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import { renderPage } from '../lib/pdf'
 import { recolorForTheme } from '../lib/pdf-color'
 import { cropCanvas, detectContentBounds } from '../lib/pdf-crop'
-import type { ReaderTheme } from '../lib/types'
+import type { DarkBackground, ReaderTheme } from '../lib/types'
 
 interface PdfPageProps {
   page: PDFPageProxy | null
@@ -11,6 +11,7 @@ interface PdfPageProps {
   cropMargin: number
   zoom: number
   theme: ReaderTheme
+  darkBackground: DarkBackground
   fontOpacity: number
   imageOnly?: boolean
   scanTheme?: boolean
@@ -26,6 +27,7 @@ export function PdfPage({
   cropMargin,
   zoom,
   theme,
+  darkBackground,
   fontOpacity,
   imageOnly = false,
   scanTheme = false,
@@ -95,7 +97,7 @@ export function PdfPage({
         display = cropCanvas(rendered.canvas, rect, marginDevice)
       }
 
-      recolorForTheme(display, theme, fontOpacity / 100, !imageOnly || scanTheme)
+      recolorForTheme(display, theme, fontOpacity / 100, !imageOnly || scanTheme, darkBackground)
 
       const logicalWidth = display.width / renderScale
       const logicalHeight = display.height / renderScale
@@ -123,7 +125,7 @@ export function PdfPage({
         // render task sudah selesai
       }
     }
-  }, [page, size, crop, cropMargin, zoom, theme, fontOpacity, imageOnly, scanTheme])
+  }, [page, size, crop, cropMargin, zoom, theme, darkBackground, fontOpacity, imageOnly, scanTheme])
 
   return <div className="pdf-page" ref={containerRef} />
 }
