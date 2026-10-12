@@ -20,6 +20,7 @@ const themeOptions: { value: ReaderTheme; label: string }[] = [
   { value: 'light', label: 'Terang' },
   { value: 'sepia', label: 'Sepia' },
   { value: 'dark', label: 'Gelap' },
+  { value: 'eink', label: 'E-Ink' },
 ]
 
 const flowOptions: { value: FlowMode; label: string }[] = [
