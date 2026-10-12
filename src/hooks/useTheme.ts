@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import type { ReaderTheme } from '../lib/types'
+import type { DarkBackground, ReaderTheme } from '../lib/types'
 
 const THEME_COLORS: Record<ReaderTheme, string> = {
   light: '#fbfbfd',
@@ -7,11 +7,11 @@ const THEME_COLORS: Record<ReaderTheme, string> = {
   dark: '#000000',
 }
 
-export function useTheme(theme: ReaderTheme) {
+export function useTheme(theme: ReaderTheme, darkBackground: DarkBackground) {
   useEffect(() => {
     document.documentElement.dataset.theme = theme
 
-    const color = THEME_COLORS[theme] ?? THEME_COLORS.light
+    const color = theme === 'dark' && darkBackground === 'gray' ? '#202124' : THEME_COLORS[theme] ?? THEME_COLORS.light
     const metaThemeColor = document.querySelector('meta[name="theme-color"]')
     if (metaThemeColor) {
       metaThemeColor.setAttribute('content', color)
@@ -21,5 +21,5 @@ export function useTheme(theme: ReaderTheme) {
       meta.content = color
       document.head.appendChild(meta)
     }
-  }, [theme])
+  }, [theme, darkBackground])
 }
