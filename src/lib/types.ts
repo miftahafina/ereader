@@ -33,7 +33,7 @@ export interface ProgressRecord {
   updatedAt: number
 }
 
-export type ReaderTheme = 'light' | 'sepia' | 'dark'
+export type ReaderTheme = 'light' | 'sepia' | 'dark' | 'ink'
 
 export type DarkBackground = 1 | 2 | 3 | 4 | 5
 

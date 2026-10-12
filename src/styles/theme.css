@@ -29,6 +29,26 @@
   color-scheme: light;
 }
 
+:root[data-theme='ink'] {
+  --bg: #DCDCD5;
+  --surface: rgba(229, 229, 223, 0.78);
+  --surface-2: rgba(36, 36, 36, 0.06);
+  --text: #242424;
+  --text-muted: #62625c;
+  --border: rgba(36, 36, 36, 0.12);
+  --accent: #3e5147;
+  --accent-contrast: #ffffff;
+  --reader-bg: #DCDCD5;
+  --shadow: 0 8px 32px rgba(36, 36, 36, 0.08);
+  color-scheme: light;
+}
+
+:root[data-theme='ink'] .reader-top,
+:root[data-theme='ink'] .reader-bottom {
+  background: #DCDCD5;
+  backdrop-filter: none;
+}
+
 :root[data-theme='dark'] {
   --bg: #000000;
   --surface: rgba(28, 28, 30, 0.4);
