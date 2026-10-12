@@ -30,7 +30,13 @@ export function useReaderSession(bookId: string, settings: ReaderSettings) {
   const tts = useReaderTts(renditionRef, settingsRef)
   const translation = useSectionTranslation(renditionRef, settingsRef)
   const search = useBookSearch(bookRef, renditionRef)
-  const bookmarks = useBookmarks(bookId)
+  const {
+    bookmarks: bookmarkRecords,
+    add: addStoredBookmark,
+    remove: removeStoredBookmark,
+    loading: bookmarksLoading,
+    error: bookmarksError,
+  } = useBookmarks(bookId)
 
   const { close: closeWord, handleSelection } = wordLookup
   const closePanel = chrome.closePanel
@@ -85,16 +91,18 @@ export function useReaderSession(bookId: string, settings: ReaderSettings) {
   )
 
   const addBookmark = useCallback(async () => {
-    const location = renditionRef.current?.currentLocation()
+    const location = renditionRef.current?.currentLocation() as
+      | { start?: { cfi?: string } }
+      | undefined
     const cfi = location?.start?.cfi
     if (!cfi) return
-    await bookmarks.add({
+    await addStoredBookmark({
       format: 'epub',
       cfi,
       percentage: engine.percentage,
       label: `Posisi ${Math.round(engine.percentage * 100)}%`,
     })
-  }, [bookmarks.add, engine.percentage])
+  }, [addStoredBookmark, engine.percentage])
 
   const selectBookmark = useCallback(
     (bookmark: BookmarkRecord) => {
@@ -180,11 +188,11 @@ export function useReaderSession(bookId: string, settings: ReaderSettings) {
     runSearch: search.run,
     clearSearch: search.clear,
     selectSearchResult,
-    bookmarks: bookmarks.bookmarks,
-    bookmarksLoading: bookmarks.loading,
-    bookmarksError: bookmarks.error,
+    bookmarks: bookmarkRecords,
+    bookmarksLoading,
+    bookmarksError,
     addBookmark,
-    removeBookmark: bookmarks.remove,
+    removeBookmark: removeStoredBookmark,
     selectBookmark,
   }
 }
