@@ -2,7 +2,7 @@ import type { DarkBackground, ReaderSettings, ReaderTheme, TextAlign } from './t
 
 export const defaultSettings: ReaderSettings = {
   theme: 'light',
-  darkBackground: 'black',
+  darkBackground: 1,
   fontSize: 100,
   fontFamily: 'literata',
   fontOpacity: 100,
@@ -67,16 +67,20 @@ export const themePalette: Record<
 }
 
 
+const darkBackgroundPalettes: Record<
+  Exclude<DarkBackground, 1>,
+  { bg: string; surface: string; border: string; readerBg: string }
+> = {
+  2: { bg: '#111315', surface: '#202226', border: '#303237', readerBg: '#232529' },
+  3: { bg: '#1e2024', surface: '#27292d', border: '#3b3d42', readerBg: '#303236' },
+  4: { bg: '#2c2e33', surface: '#35373c', border: '#494b51', readerBg: '#3b3e43' },
+  5: { bg: '#3a3d42', surface: '#44474d', border: '#595c63', readerBg: '#474a50' },
+}
+
 export function getThemePalette(theme: ReaderTheme, darkBackground: DarkBackground) {
   const palette = themePalette[theme]
-  if (theme !== 'dark' || darkBackground !== 'gray') return palette
-  return {
-    ...palette,
-    bg: '#202124',
-    surface: '#27292d',
-    border: '#3b3d42',
-    readerBg: '#303236',
-  }
+  if (theme !== 'dark' || darkBackground === 1) return palette
+  return { ...palette, ...darkBackgroundPalettes[darkBackground] }
 }
 
 export const fontOptions: { value: string; label: string; stack: string }[] = [
@@ -105,8 +109,16 @@ export function loadSettings(): ReaderSettings {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return { ...defaultSettings }
-    const parsed = JSON.parse(raw) as Partial<ReaderSettings>
-    return { ...defaultSettings, ...parsed }
+    const parsed = JSON.parse(raw) as Partial<ReaderSettings> & { darkBackground?: unknown }
+    const darkBackground =
+      parsed.darkBackground === 'gray'
+        ? 3
+        : parsed.darkBackground === 'black'
+          ? 1
+          : typeof parsed.darkBackground === 'number' && parsed.darkBackground >= 1 && parsed.darkBackground <= 5
+            ? (Math.round(parsed.darkBackground) as DarkBackground)
+            : defaultSettings.darkBackground
+    return { ...defaultSettings, ...parsed, darkBackground }
   } catch {
     return { ...defaultSettings }
   }
