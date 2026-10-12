@@ -8,6 +8,13 @@ export function buildReaderCss(settings: ReaderSettings): string {
   const font = fontOptions.find((option) => option.value === settings.fontFamily)
   const fontRule = font?.stack ? `font-family: ${font.stack} !important;` : ''
   const fontFaces = settings.fontFamily === 'literata' ? literataFontFaces() : ''
+  const backgroundRule =
+    settings.theme === 'light'
+      ? ''
+      : `body *:not(img):not(svg):not(canvas):not(video):not(iframe) {
+          background-color: transparent !important;
+          background-image: none !important;
+        }`
   const alignRule =
     settings.textAlign === 'default'
       ? ''
@@ -16,6 +23,7 @@ export function buildReaderCss(settings: ReaderSettings): string {
   return `
     ${fontFaces}
     html, body { background: ${palette.bg} !important; }
+    ${backgroundRule}
     html, body, body * {
       -webkit-touch-callout: none !important;
       -webkit-tap-highlight-color: transparent !important;
