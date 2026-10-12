@@ -14,6 +14,17 @@ export interface BookRecord {
 
 export type BookMeta = Omit<BookRecord, 'data'>
 
+export interface BookmarkRecord {
+  id: string
+  bookId: string
+  format: BookFormat
+  cfi?: string
+  page?: number
+  percentage: number
+  label: string
+  createdAt: number
+}
+
 export interface ProgressRecord {
   id: string
   cfi?: string

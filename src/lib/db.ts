@@ -1,5 +1,5 @@
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb'
-import type { BookMeta, BookRecord, ProgressRecord } from './types'
+import type { BookmarkRecord, BookMeta, BookRecord, ProgressRecord } from './types'
 
 interface EReaderDB extends DBSchema {
   books: {
@@ -11,20 +11,31 @@ interface EReaderDB extends DBSchema {
     key: string
     value: ProgressRecord
   }
+  bookmarks: {
+    key: string
+    value: BookmarkRecord
+    indexes: { 'by-bookId': string }
+  }
 }
 
 const DB_NAME = 'ereader-web'
-const DB_VERSION = 1
+const DB_VERSION = 2
 
 let dbPromise: Promise<IDBPDatabase<EReaderDB>> | null = null
 
 function getDB() {
   if (!dbPromise) {
     dbPromise = openDB<EReaderDB>(DB_NAME, DB_VERSION, {
-      upgrade(db) {
-        const books = db.createObjectStore('books', { keyPath: 'id' })
-        books.createIndex('by-addedAt', 'addedAt')
-        db.createObjectStore('progress', { keyPath: 'id' })
+      upgrade(db, oldVersion) {
+        if (oldVersion < 1) {
+          const books = db.createObjectStore('books', { keyPath: 'id' })
+          books.createIndex('by-addedAt', 'addedAt')
+          db.createObjectStore('progress', { keyPath: 'id' })
+        }
+        if (oldVersion < 2) {
+          const bookmarks = db.createObjectStore('bookmarks', { keyPath: 'id' })
+          bookmarks.createIndex('by-bookId', 'bookId')
+        }
       },
     })
   }
@@ -65,12 +76,34 @@ export async function addBook(book: BookRecord): Promise<void> {
 
 export async function deleteBook(id: string): Promise<void> {
   const db = await getDB()
-  const tx = db.transaction(['books', 'progress'], 'readwrite')
+  const tx = db.transaction(['books', 'progress', 'bookmarks'], 'readwrite')
+  const bookmarkStore = tx.objectStore('bookmarks')
+  let cursor = await bookmarkStore.index('by-bookId').openCursor(id)
+  while (cursor) {
+    await cursor.delete()
+    cursor = await cursor.continue()
+  }
   await Promise.all([
     tx.objectStore('books').delete(id),
     tx.objectStore('progress').delete(id),
     tx.done,
   ])
+}
+
+export async function listBookmarks(bookId: string): Promise<BookmarkRecord[]> {
+  const db = await getDB()
+  const records = await db.getAllFromIndex('bookmarks', 'by-bookId', bookId)
+  return records.sort((a, b) => b.createdAt - a.createdAt)
+}
+
+export async function saveBookmark(bookmark: BookmarkRecord): Promise<void> {
+  const db = await getDB()
+  await db.put('bookmarks', bookmark)
+}
+
+export async function deleteBookmark(id: string): Promise<void> {
+  const db = await getDB()
+  await db.delete('bookmarks', id)
 }
 
 export async function getAllProgress(): Promise<Record<string, ProgressRecord>> {

@@ -6,6 +6,8 @@ import { Toc } from './Toc'
 import { FullscreenButton } from './FullscreenButton'
 import { WordPopup } from './WordPopup'
 import { DebugPanel } from './DebugPanel'
+import { BookmarkIcon } from './BookmarkIcon'
+import { BookmarksPanel } from './BookmarksPanel'
 
 interface ReaderProps {
   bookId: string
@@ -49,6 +51,12 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
     runSearch,
     clearSearch,
     selectSearchResult,
+    bookmarks,
+    bookmarksLoading,
+    bookmarksError,
+    addBookmark,
+    removeBookmark,
+    selectBookmark,
   } = useReaderSession(bookId, settings)
 
   return (
@@ -90,6 +98,13 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
             </svg>
           </button>
           <button
+            className={`icon-btn ${panel === 'bookmarks' ? 'active' : ''}`}
+            onClick={() => togglePanel('bookmarks')}
+            aria-label="Bookmark"
+          >
+            <BookmarkIcon />
+          </button>
+          <button
             className={`icon-btn ${panel === 'settings' ? 'active' : ''}`}
             onClick={() => togglePanel('settings')}
             aria-label="Pengaturan"
@@ -104,6 +119,20 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
         {panel === 'toc' && (
           <aside className="reader-sidebar">
             <Toc items={toc} currentHref={currentHref} onSelect={handleTocSelect} />
+          </aside>
+        )}
+
+        {panel === 'bookmarks' && (
+          <aside className="reader-sidebar">
+            <BookmarksPanel
+              bookmarks={bookmarks}
+              format="epub"
+              loading={bookmarksLoading}
+              error={bookmarksError}
+              onAdd={() => void addBookmark()}
+              onSelect={selectBookmark}
+              onDelete={(id) => void removeBookmark(id)}
+            />
           </aside>
         )}
 

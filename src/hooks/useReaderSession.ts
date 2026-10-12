@@ -2,7 +2,8 @@ import type { Book, Rendition } from 'epubjs'
 import { useCallback, useEffect, useRef } from 'react'
 import { applyReaderTheme } from '../lib/reader-theme'
 import type { SearchResult } from '../lib/search'
-import type { ReaderSettings } from '../lib/types'
+import type { BookmarkRecord, ReaderSettings } from '../lib/types'
+import { useBookmarks } from './useBookmarks'
 import { useBookSearch } from './useBookSearch'
 import { useEpubRendition } from './useEpubRendition'
 import { useLatest } from './useLatest'
@@ -29,6 +30,13 @@ export function useReaderSession(bookId: string, settings: ReaderSettings) {
   const tts = useReaderTts(renditionRef, settingsRef)
   const translation = useSectionTranslation(renditionRef, settingsRef)
   const search = useBookSearch(bookRef, renditionRef)
+  const {
+    bookmarks: bookmarkRecords,
+    add: addStoredBookmark,
+    remove: removeStoredBookmark,
+    loading: bookmarksLoading,
+    error: bookmarksError,
+  } = useBookmarks(bookId)
 
   const { close: closeWord, handleSelection } = wordLookup
   const closePanel = chrome.closePanel
@@ -77,6 +85,28 @@ export function useReaderSession(bookId: string, settings: ReaderSettings) {
   const handleTocSelect = useCallback(
     (href: string) => {
       void renditionRef.current?.display(href)
+      closePanel()
+    },
+    [closePanel],
+  )
+
+  const addBookmark = useCallback(async () => {
+    const location = renditionRef.current?.currentLocation() as
+      | { start?: { cfi?: string } }
+      | undefined
+    const cfi = location?.start?.cfi
+    if (!cfi) return
+    await addStoredBookmark({
+      format: 'epub',
+      cfi,
+      percentage: engine.percentage,
+      label: `Posisi ${Math.round(engine.percentage * 100)}%`,
+    })
+  }, [addStoredBookmark, engine.percentage])
+
+  const selectBookmark = useCallback(
+    (bookmark: BookmarkRecord) => {
+      if (bookmark.cfi) void renditionRef.current?.display(bookmark.cfi)
       closePanel()
     },
     [closePanel],
@@ -158,5 +188,11 @@ export function useReaderSession(bookId: string, settings: ReaderSettings) {
     runSearch: search.run,
     clearSearch: search.clear,
     selectSearchResult,
+    bookmarks: bookmarkRecords,
+    bookmarksLoading,
+    bookmarksError,
+    addBookmark,
+    removeBookmark: removeStoredBookmark,
+    selectBookmark,
   }
 }
