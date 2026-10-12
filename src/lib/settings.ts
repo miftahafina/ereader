@@ -77,6 +77,14 @@ const darkBackgroundPalettes: Record<
   5: { bg: '#3a3d42', surface: '#44474d', border: '#595c63', readerBg: '#474a50' },
 }
 
+export const darkBackgroundLabels: Record<DarkBackground, string> = {
+  1: 'Hitam',
+  2: 'Nyaris hitam',
+  3: 'Arang',
+  4: 'Abu-abu tua',
+  5: 'Abu-abu',
+}
+
 export function getThemePalette(theme: ReaderTheme, darkBackground: DarkBackground) {
   const palette = themePalette[theme]
   if (theme !== 'dark' || darkBackground === 1) return palette
