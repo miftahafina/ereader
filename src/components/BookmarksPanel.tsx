@@ -23,7 +23,7 @@ export function BookmarksPanel({
   return (
     <div className="bookmarks-panel">
       <div className="bookmarks-heading">
-        <h2>Bookmark</h2>
+        <h2>Bookmark {format.toUpperCase()}</h2>
         <button className="bookmark-add" onClick={onAdd} aria-label="Simpan posisi saat ini">
           <BookmarkIcon />
           Simpan
@@ -56,7 +56,6 @@ export function BookmarksPanel({
           ))}
         </ul>
       )}
-      <span className="sr-only">{format === 'epub' ? 'Bookmark EPUB' : 'Bookmark PDF'}</span>
     </div>
   )
 }
