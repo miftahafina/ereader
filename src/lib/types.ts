@@ -24,7 +24,7 @@ export interface ProgressRecord {
 
 export type ReaderTheme = 'light' | 'sepia' | 'dark'
 
-export type DarkBackground = 'black' | 'gray'
+export type DarkBackground = 1 | 2 | 3 | 4 | 5
 
 export type FlowMode = 'paginated' | 'scrolled'
 
