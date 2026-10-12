@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { getThemePalette } from '../lib/settings'
 import type { DarkBackground, ReaderTheme } from '../lib/types'
 
 const THEME_COLORS: Record<ReaderTheme, string> = {
@@ -13,8 +14,8 @@ export function useTheme(theme: ReaderTheme, darkBackground: DarkBackground) {
     document.documentElement.dataset.darkBackground = darkBackground
 
     const color =
-      theme === 'dark' && darkBackground === 'gray'
-        ? '#202124'
+      theme === 'dark'
+        ? getThemePalette(theme, darkBackground).bg
         : (THEME_COLORS[theme] ?? THEME_COLORS.light)
     const metaThemeColor = document.querySelector('meta[name="theme-color"]')
     if (metaThemeColor) {
