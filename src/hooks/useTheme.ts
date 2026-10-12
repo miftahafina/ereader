@@ -11,7 +11,7 @@ const THEME_COLORS: Record<ReaderTheme, string> = {
 export function useTheme(theme: ReaderTheme, darkBackground: DarkBackground) {
   useEffect(() => {
     document.documentElement.dataset.theme = theme
-    document.documentElement.dataset.darkBackground = darkBackground
+    document.documentElement.dataset.darkBackground = String(darkBackground)
 
     const color =
       theme === 'dark' && darkBackground > 1
