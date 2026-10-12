@@ -1,10 +1,11 @@
 import type { PDFPageProxy } from 'pdfjs-dist'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { usePdfDocument } from '../hooks/usePdfDocument'
 import { usePdfProgress } from '../hooks/usePdfProgress'
 import { usePdfReflow } from '../hooks/usePdfReflow'
 import { usePdfReflowPager } from '../hooks/usePdfReflowPager'
 import { usePdfView } from '../hooks/usePdfView'
+import { useBookmarks } from '../hooks/useBookmarks'
 import { useReaderChrome } from '../hooks/useReaderChrome'
 import { literataFontFaces } from '../lib/fontFaces'
 import { pageHasText } from '../lib/pdf'
@@ -15,6 +16,8 @@ import { FullscreenButton } from './FullscreenButton'
 import { PdfPage } from './PdfPage'
 import { PdfSettingsPanel } from './PdfSettingsPanel'
 import { PdfToc } from './PdfToc'
+import { BookmarkIcon } from './BookmarkIcon'
+import { BookmarksPanel } from './BookmarksPanel'
 
 interface PdfReaderProps {
   bookId: string
@@ -26,6 +29,7 @@ interface PdfReaderProps {
 export function PdfReader({ bookId, settings, onSettingsChange, onClose }: PdfReaderProps) {
   const { record, doc, outline, loading, error } = usePdfDocument(bookId)
   const chrome = useReaderChrome()
+  const bookmarks = useBookmarks(bookId)
   const view = usePdfView(doc, settings)
   const reflow = usePdfReflow(doc, settings.pdfReflow)
   const { load, schedule, flush } = usePdfProgress(bookId)
@@ -51,6 +55,7 @@ export function PdfReader({ bookId, settings, onSettingsChange, onClose }: PdfRe
     total: reflowTotal,
     goNext: reflowNext,
     goPrev: reflowPrev,
+    goToPercentage: reflowGoToPercentage,
     canPrev: reflowCanPrev,
     canNext: reflowCanNext,
     percentage: reflowPercentage,
@@ -138,6 +143,25 @@ export function PdfReader({ bookId, settings, onSettingsChange, onClose }: PdfRe
     return () => window.removeEventListener('keydown', onKey)
   }, [settings.pdfReflow, reflowNext, reflowPrev, view, chrome])
 
+  const addBookmark = useCallback(async () => {
+    const percentage = settings.pdfReflow ? reflowPercentage : view.percentage
+    const page = settings.pdfReflow
+      ? Math.round(percentage * Math.max(0, view.numPages - 1)) + 1
+      : view.page
+    await bookmarks.add({
+      format: 'pdf',
+      page,
+      percentage,
+      label: `Halaman ${page}`,
+    })
+  }, [bookmarks.add, settings.pdfReflow, reflowPercentage, view.page, view.numPages, view.percentage])
+
+  const selectBookmark = useCallback((bookmark: import('../lib/types').BookmarkRecord) => {
+    if (settings.pdfReflow) reflowGoToPercentage(bookmark.percentage)
+    else if (bookmark.page) view.setPage(bookmark.page)
+    chrome.closePanel()
+  }, [settings.pdfReflow, reflowGoToPercentage, view.setPage, chrome])
+
   const touchStartX = useRef<number | null>(null)
   const handleTouchStart = (event: React.TouchEvent) => {
     touchStartX.current = event.touches[0].clientX
@@ -185,6 +209,13 @@ export function PdfReader({ bookId, settings, onSettingsChange, onClose }: PdfRe
             ☰
           </button>
           <button
+            className={`icon-btn ${chrome.panel === 'bookmarks' ? 'active' : ''}`}
+            onClick={() => chrome.togglePanel('bookmarks')}
+            aria-label="Bookmark"
+          >
+            <BookmarkIcon />
+          </button>
+          <button
             className={`icon-btn ${chrome.panel === 'settings' ? 'active' : ''}`}
             onClick={() => chrome.togglePanel('settings')}
             aria-label="Pengaturan"
@@ -196,6 +227,20 @@ export function PdfReader({ bookId, settings, onSettingsChange, onClose }: PdfRe
       </header>
 
       <div className="reader-body">
+        {chrome.panel === 'bookmarks' && (
+          <aside className="reader-sidebar">
+            <BookmarksPanel
+              bookmarks={bookmarks.bookmarks}
+              format="pdf"
+              loading={bookmarks.loading}
+              error={bookmarks.error}
+              onAdd={() => void addBookmark()}
+              onSelect={selectBookmark}
+              onDelete={(id) => void bookmarks.remove(id)}
+            />
+          </aside>
+        )}
+
         {chrome.panel === 'toc' && (
           <aside className="reader-sidebar">
             <PdfToc items={outline} currentPage={view.page} onSelect={view.setPage} />
