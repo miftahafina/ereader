@@ -14,6 +14,11 @@ const themeOptions: { value: ReaderTheme; label: string }[] = [
   { value: 'dark', label: 'Gelap' },
 ]
 
+const darkBackgroundOptions: { value: ReaderSettings['darkBackground']; label: string }[] = [
+  { value: 'black', label: 'Hitam' },
+  { value: 'gray', label: 'Abu-abu' },
+]
+
 const spreadOptions: { value: PdfSpreadMode; label: string }[] = [
   { value: 'auto', label: 'Auto' },
   { value: 'single', label: '1' },
@@ -34,6 +39,16 @@ export function PdfSettingsPanel({ settings, onChange }: PdfSettingsPanelProps) 
           onChange={(theme) => onChange({ theme })}
         />
       </SettingGroup>
+
+      {settings.theme === 'dark' && (
+        <SettingGroup label="Latar gelap" icon="theme">
+          <SegmentedControl
+            options={darkBackgroundOptions}
+            value={settings.darkBackground}
+            onChange={(darkBackground) => onChange({ darkBackground })}
+          />
+        </SettingGroup>
+      )}
 
       <SettingRow label="Halaman per layar" icon="spread">
         <SegmentedControl

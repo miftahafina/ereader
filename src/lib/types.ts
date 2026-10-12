@@ -24,6 +24,8 @@ export interface ProgressRecord {
 
 export type ReaderTheme = 'light' | 'sepia' | 'dark'
 
+export type DarkBackground = 'black' | 'gray'
+
 export type FlowMode = 'paginated' | 'scrolled'
 
 export type TextAlign = 'default' | 'left' | 'center' | 'right' | 'justify'
@@ -32,6 +34,7 @@ export type PdfSpreadMode = 'auto' | 'single' | 'double'
 
 export interface ReaderSettings {
   theme: ReaderTheme
+  darkBackground: DarkBackground
   fontSize: number
   fontFamily: string
   fontOpacity: number

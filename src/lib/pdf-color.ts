@@ -1,5 +1,5 @@
-import { themePalette } from './settings'
-import type { ReaderTheme } from './types'
+import { getThemePalette } from './settings'
+import type { DarkBackground, ReaderTheme } from './types'
 
 interface RGB {
   r: number
@@ -59,11 +59,12 @@ export function recolorForTheme(
   theme: ReaderTheme,
   opacity = 1,
   remap = true,
+  darkBackground: DarkBackground = 'black',
 ): void {
   const alpha = Math.min(1, Math.max(0, opacity))
   if (theme === 'light' && alpha >= 1) return
 
-  const palette = themePalette[theme]
+  const palette = getThemePalette(theme, darkBackground)
   const backgroundTarget = hexToRgb(palette.readerBg)
   const textTarget = hexToRgb(palette.text)
   const doRemap = remap && theme !== 'light'

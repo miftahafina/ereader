@@ -1,10 +1,10 @@
 import type { Contents, Rendition } from 'epubjs'
 import { literataFontFaces } from './fontFaces'
-import { fontOptions, themePalette } from './settings'
+import { fontOptions, getThemePalette } from './settings'
 import type { ReaderSettings } from './types'
 
 export function buildReaderCss(settings: ReaderSettings): string {
-  const palette = themePalette[settings.theme]
+  const palette = getThemePalette(settings.theme, settings.darkBackground)
   const font = fontOptions.find((option) => option.value === settings.fontFamily)
   const fontRule = font?.stack ? `font-family: ${font.stack} !important;` : ''
   const fontFaces = settings.fontFamily === 'literata' ? literataFontFaces() : ''

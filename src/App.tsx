@@ -22,7 +22,7 @@ export default function App() {
     useLibrary()
   const [view, setView] = useState<View>({ type: 'library' })
 
-  useTheme(settings.theme)
+  useTheme(settings.theme, settings.darkBackground)
 
   const handleDrop = useCallback(
     (files: File[]) => {

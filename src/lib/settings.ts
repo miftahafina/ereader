@@ -1,7 +1,8 @@
-import type { ReaderSettings, ReaderTheme, TextAlign } from './types'
+import type { DarkBackground, ReaderSettings, ReaderTheme, TextAlign } from './types'
 
 export const defaultSettings: ReaderSettings = {
   theme: 'light',
+  darkBackground: 'black',
   fontSize: 100,
   fontFamily: 'literata',
   fontOpacity: 100,
@@ -63,6 +64,19 @@ export const themePalette: Record<
     border: '#2a2e34',
     readerBg: '#1c1c1e',
   },
+}
+
+
+export function getThemePalette(theme: ReaderTheme, darkBackground: DarkBackground) {
+  const palette = themePalette[theme]
+  if (theme !== 'dark' || darkBackground !== 'gray') return palette
+  return {
+    ...palette,
+    bg: '#202124',
+    surface: '#27292d',
+    border: '#3b3d42',
+    readerBg: '#303236',
+  }
 }
 
 export const fontOptions: { value: string; label: string; stack: string }[] = [
