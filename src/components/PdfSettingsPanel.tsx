@@ -1,4 +1,4 @@
-import { defaultSettings, fontOptions, textAlignOptions } from '../lib/settings'
+import { darkBackgroundLabels, defaultSettings, fontOptions, textAlignOptions } from '../lib/settings'
 import type { PdfSpreadMode, ReaderSettings, ReaderTheme, TextAlign } from '../lib/types'
 import { SegmentedControl, SelectSetting, SettingGroup, SettingRow, SliderSetting } from './SettingsControls'
 import { SettingIcon } from './SettingsIcon'
@@ -12,11 +12,6 @@ const themeOptions: { value: ReaderTheme; label: string }[] = [
   { value: 'light', label: 'Terang' },
   { value: 'sepia', label: 'Sepia' },
   { value: 'dark', label: 'Gelap' },
-]
-
-const darkBackgroundOptions: { value: ReaderSettings['darkBackground']; label: string }[] = [
-  { value: 'black', label: 'Hitam' },
-  { value: 'gray', label: 'Abu-abu' },
 ]
 
 const spreadOptions: { value: PdfSpreadMode; label: string }[] = [
@@ -41,13 +36,16 @@ export function PdfSettingsPanel({ settings, onChange }: PdfSettingsPanelProps) 
       </SettingGroup>
 
       {settings.theme === 'dark' && (
-        <SettingGroup label="Latar gelap" icon="theme">
-          <SegmentedControl
-            options={darkBackgroundOptions}
-            value={settings.darkBackground}
-            onChange={(darkBackground) => onChange({ darkBackground })}
-          />
-        </SettingGroup>
+        <SliderSetting
+          label="Latar gelap"
+          icon="theme"
+          display={`${settings.darkBackground} · ${darkBackgroundLabels[settings.darkBackground]}`}
+          min={1}
+          max={5}
+          step={1}
+          value={settings.darkBackground}
+          onChange={(level) => onChange({ darkBackground: level as ReaderSettings['darkBackground'] })}
+        />
       )}
 
       <SettingRow label="Halaman per layar" icon="spread">

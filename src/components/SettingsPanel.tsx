@@ -1,4 +1,4 @@
-import { defaultSettings, fontOptions, textAlignOptions } from '../lib/settings'
+import { darkBackgroundLabels, defaultSettings, fontOptions, textAlignOptions } from '../lib/settings'
 import { translateLanguageOptions } from '../lib/translate'
 import { useVoices } from '../hooks/useVoices'
 import type { FlowMode, ReaderSettings, ReaderTheme, TextAlign } from '../lib/types'
@@ -20,11 +20,6 @@ const themeOptions: { value: ReaderTheme; label: string }[] = [
   { value: 'light', label: 'Terang' },
   { value: 'sepia', label: 'Sepia' },
   { value: 'dark', label: 'Gelap' },
-]
-
-const darkBackgroundOptions: { value: ReaderSettings['darkBackground']; label: string }[] = [
-  { value: 'black', label: 'Hitam' },
-  { value: 'gray', label: 'Abu-abu' },
 ]
 
 const flowOptions: { value: FlowMode; label: string }[] = [
@@ -101,13 +96,16 @@ export function SettingsPanel({ settings, onChange }: SettingsPanelProps) {
       </SettingGroup>
 
       {settings.theme === 'dark' && (
-        <SettingGroup label="Latar gelap" icon="theme">
-          <SegmentedControl
-            options={darkBackgroundOptions}
-            value={settings.darkBackground}
-            onChange={(darkBackground) => onChange({ darkBackground })}
-          />
-        </SettingGroup>
+        <SliderSetting
+          label="Latar gelap"
+          icon="theme"
+          display={`${settings.darkBackground} · ${darkBackgroundLabels[settings.darkBackground]}`}
+          min={1}
+          max={5}
+          step={1}
+          value={settings.darkBackground}
+          onChange={(level) => onChange({ darkBackground: level as ReaderSettings['darkBackground'] })}
+        />
       )}
 
       <SliderSetting

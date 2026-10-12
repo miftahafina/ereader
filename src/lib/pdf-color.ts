@@ -59,7 +59,7 @@ export function recolorForTheme(
   theme: ReaderTheme,
   opacity = 1,
   remap = true,
-  darkBackground: DarkBackground = 'black',
+  darkBackground: DarkBackground = 1,
 ): void {
   const alpha = Math.min(1, Math.max(0, opacity))
   if (theme === 'light' && alpha >= 1) return
