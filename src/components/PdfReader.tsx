@@ -29,7 +29,14 @@ interface PdfReaderProps {
 export function PdfReader({ bookId, settings, onSettingsChange, onClose }: PdfReaderProps) {
   const { record, doc, outline, loading, error } = usePdfDocument(bookId)
   const chrome = useReaderChrome()
-  const bookmarks = useBookmarks(bookId)
+  const closePanel = chrome.closePanel
+  const {
+    bookmarks: bookmarkRecords,
+    add: addStoredBookmark,
+    remove: removeStoredBookmark,
+    loading: bookmarksLoading,
+    error: bookmarksError,
+  } = useBookmarks(bookId)
   const view = usePdfView(doc, settings)
   const reflow = usePdfReflow(doc, settings.pdfReflow)
   const { load, schedule, flush } = usePdfProgress(bookId)
@@ -148,19 +155,19 @@ export function PdfReader({ bookId, settings, onSettingsChange, onClose }: PdfRe
     const page = settings.pdfReflow
       ? Math.round(percentage * Math.max(0, view.numPages - 1)) + 1
       : view.page
-    await bookmarks.add({
+    await addStoredBookmark({
       format: 'pdf',
       page,
       percentage,
       label: `Halaman ${page}`,
     })
-  }, [bookmarks.add, settings.pdfReflow, reflowPercentage, view.page, view.numPages, view.percentage])
+  }, [addStoredBookmark, settings.pdfReflow, reflowPercentage, view])
 
   const selectBookmark = useCallback((bookmark: BookmarkRecord) => {
     if (settings.pdfReflow) reflowGoToPercentage(bookmark.percentage)
     else if (bookmark.page) view.setPage(bookmark.page)
-    chrome.closePanel()
-  }, [settings.pdfReflow, reflowGoToPercentage, view.setPage, chrome])
+    closePanel()
+  }, [settings.pdfReflow, reflowGoToPercentage, view, closePanel])
 
   const touchStartX = useRef<number | null>(null)
   const handleTouchStart = (event: React.TouchEvent) => {
@@ -230,13 +237,13 @@ export function PdfReader({ bookId, settings, onSettingsChange, onClose }: PdfRe
         {chrome.panel === 'bookmarks' && (
           <aside className="reader-sidebar">
             <BookmarksPanel
-              bookmarks={bookmarks.bookmarks}
+              bookmarks={bookmarkRecords}
               format="pdf"
-              loading={bookmarks.loading}
-              error={bookmarks.error}
+              loading={bookmarksLoading}
+              error={bookmarksError}
               onAdd={() => void addBookmark()}
               onSelect={selectBookmark}
-              onDelete={(id) => void bookmarks.remove(id)}
+              onDelete={(id) => void removeStoredBookmark(id)}
             />
           </aside>
         )}
