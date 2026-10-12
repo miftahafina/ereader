@@ -49,6 +49,7 @@ export function useEpubRendition({
   const [toc, setToc] = useState<NavItem[]>([])
   const [percentage, setPercentage] = useState(0)
   const [currentHref, setCurrentHref] = useState<string | undefined>(undefined)
+  const [currentCfi, setCurrentCfi] = useState<string | undefined>(undefined)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -68,6 +69,8 @@ export function useEpubRendition({
       setError(null)
       setToc([])
       setPercentage(0)
+      setCurrentHref(undefined)
+      setCurrentCfi(undefined)
       lastSizeRef.current = null
 
       const loaded = await getBook(bookId)
@@ -133,6 +136,7 @@ export function useEpubRendition({
         const pct = typeof location.start.percentage === 'number' ? location.start.percentage : 0
         setPercentage(pct)
         setCurrentHref(location.start.href)
+        setCurrentCfi(cfi)
         schedule(cfi, pct)
         const sectionIndex = typeof location.start.index === 'number' ? location.start.index : null
         handlersRef.current.onSectionChange(sectionIndex)
@@ -185,5 +189,5 @@ export function useEpubRendition({
     }
   }, [bookId, flow, settingsRef, viewerRef, renditionRef, bookRef, handlersRef, load, schedule, flush])
 
-  return { record, toc, percentage, currentHref, loading, error }
+  return { record, toc, percentage, currentHref, currentCfi, loading, error }
 }
