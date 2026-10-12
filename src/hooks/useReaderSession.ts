@@ -105,8 +105,9 @@ export function useReaderSession(bookId: string, settings: ReaderSettings) {
   }, [addStoredBookmark, engine.percentage])
 
   const selectBookmark = useCallback(
-    (bookmark: BookmarkRecord) => {
-      if (bookmark.cfi) void renditionRef.current?.display(bookmark.cfi)
+    async (bookmark: BookmarkRecord) => {
+      const rendition = renditionRef.current
+      if (bookmark.cfi && rendition) await rendition.display(bookmark.cfi)
       closePanel()
     },
     [closePanel],
