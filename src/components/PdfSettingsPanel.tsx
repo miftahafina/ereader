@@ -1,4 +1,4 @@
-import { defaultSettings, fontOptions, textAlignOptions } from '../lib/settings'
+import { darkBackgroundLabels, defaultSettings, fontOptions, textAlignOptions } from '../lib/settings'
 import type { PdfSpreadMode, ReaderSettings, ReaderTheme, TextAlign } from '../lib/types'
 import { SegmentedControl, SelectSetting, SettingGroup, SettingRow, SliderSetting } from './SettingsControls'
 import { SettingIcon } from './SettingsIcon'
@@ -39,7 +39,7 @@ export function PdfSettingsPanel({ settings, onChange }: PdfSettingsPanelProps) 
         <SliderSetting
           label="Latar gelap"
           icon="theme"
-          display={`Level ${settings.darkBackground}`}
+          display={`${settings.darkBackground} · ${darkBackgroundLabels[settings.darkBackground]}`}
           min={1}
           max={5}
           step={1}
