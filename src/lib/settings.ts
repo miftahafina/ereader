@@ -127,7 +127,7 @@ export function loadSettings(): ReaderSettings {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return { ...defaultSettings }
-    const parsed = JSON.parse(raw) as Partial<ReaderSettings> & { darkBackground?: unknown }
+    const parsed = JSON.parse(raw) as Omit<Partial<ReaderSettings>, 'darkBackground'> & { darkBackground?: unknown }
     const darkBackground = parseDarkBackground(parsed.darkBackground)
     return { ...defaultSettings, ...parsed, darkBackground }
   } catch {
