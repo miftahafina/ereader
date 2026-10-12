@@ -1,4 +1,4 @@
-import { defaultSettings, fontOptions, textAlignOptions } from '../lib/settings'
+import { darkBackgroundLabels, defaultSettings, fontOptions, textAlignOptions } from '../lib/settings'
 import { translateLanguageOptions } from '../lib/translate'
 import { useVoices } from '../hooks/useVoices'
 import type { FlowMode, ReaderSettings, ReaderTheme, TextAlign } from '../lib/types'
@@ -99,7 +99,7 @@ export function SettingsPanel({ settings, onChange }: SettingsPanelProps) {
         <SliderSetting
           label="Latar gelap"
           icon="theme"
-          display={`Level ${settings.darkBackground}`}
+          display={`${settings.darkBackground} · ${darkBackgroundLabels[settings.darkBackground]}`}
           min={1}
           max={5}
           step={1}
