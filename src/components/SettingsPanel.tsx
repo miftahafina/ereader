@@ -22,6 +22,11 @@ const themeOptions: { value: ReaderTheme; label: string }[] = [
   { value: 'dark', label: 'Gelap' },
 ]
 
+const darkBackgroundOptions: { value: ReaderSettings['darkBackground']; label: string }[] = [
+  { value: 'black', label: 'Hitam' },
+  { value: 'gray', label: 'Abu-abu' },
+]
+
 const flowOptions: { value: FlowMode; label: string }[] = [
   { value: 'paginated', label: 'Halaman' },
   { value: 'scrolled', label: 'Gulir' },
@@ -94,6 +99,16 @@ export function SettingsPanel({ settings, onChange }: SettingsPanelProps) {
           onChange={(theme) => onChange({ theme })}
         />
       </SettingGroup>
+
+      {settings.theme === 'dark' && (
+        <SettingGroup label="Latar gelap" icon="theme">
+          <SegmentedControl
+            options={darkBackgroundOptions}
+            value={settings.darkBackground}
+            onChange={(darkBackground) => onChange({ darkBackground })}
+          />
+        </SettingGroup>
+      )}
 
       <SliderSetting
         label="Ukuran huruf"
