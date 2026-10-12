@@ -64,6 +64,15 @@ export const themePalette: Record<
     border: '#2a2e34',
     readerBg: '#1c1c1e',
   },
+  eink: {
+    bg: '#DCDCD5',
+    text: '#242424',
+    link: '#242424',
+    muted: '#62625c',
+    surface: '#E5E5DF',
+    border: '#C8C8C1',
+    readerBg: '#DCDCD5',
+  },
 }
 
 
