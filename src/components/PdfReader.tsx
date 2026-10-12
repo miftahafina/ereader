@@ -186,6 +186,11 @@ export function PdfReader({ bookId, settings, onSettingsChange, onClose }: PdfRe
   }
 
   const displayPercentage = settings.pdfReflow ? reflowPercentage : view.percentage
+  const isBookmarked = bookmarkRecords.some((bookmark) =>
+    settings.pdfReflow
+      ? Math.round(bookmark.percentage * (reflowTotal - 1)) === reflowPage
+      : bookmark.page === view.page,
+  )
   const fontStack = fontOptions.find((option) => option.value === settings.fontFamily)?.stack ?? ''
   const reflowStyle: React.CSSProperties = {
     fontSize: `${settings.fontSize}%`,
@@ -220,7 +225,7 @@ export function PdfReader({ bookId, settings, onSettingsChange, onClose }: PdfRe
             onClick={() => chrome.togglePanel('bookmarks')}
             aria-label="Bookmark"
           >
-            <BookmarkIcon />
+            <BookmarkIcon filled={isBookmarked} />
           </button>
           <button
             className={`icon-btn ${chrome.panel === 'settings' ? 'active' : ''}`}
