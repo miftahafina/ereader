@@ -6,7 +6,7 @@ const THEME_COLORS: Record<ReaderTheme, string> = {
   light: '#fbfbfd',
   sepia: '#f4ead5',
   dark: '#000000',
-  eink: '#DCDCD5',
+  ink: '#DCDCD5',
 }
 
 export function useTheme(theme: ReaderTheme, darkBackground: DarkBackground) {
