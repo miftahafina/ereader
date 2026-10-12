@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { deleteBookmark, listBookmarks, saveBookmark } from '../lib/db'
-import type { BookmarkRecord, BookFormat } from '../lib/types'
+import type { BookmarkRecord } from '../lib/types'
 
 type NewBookmark = Omit<BookmarkRecord, 'id' | 'bookId' | 'createdAt'>
 
@@ -26,26 +26,30 @@ export function useBookmarks(bookId: string) {
   }, [refresh])
 
   const add = useCallback(async (bookmark: NewBookmark) => {
-    const id = crypto.randomUUID()
-    const record: BookmarkRecord = {
-      ...bookmark,
-      id,
-      bookId,
-      createdAt: Date.now(),
+    try {
+      const record: BookmarkRecord = {
+        ...bookmark,
+        id: crypto.randomUUID(),
+        bookId,
+        createdAt: Date.now(),
+      }
+      await saveBookmark(record)
+      setBookmarks((current) => [record, ...current])
+      setError(null)
+    } catch {
+      setError('Bookmark gagal disimpan.')
     }
-    await saveBookmark(record)
-    setBookmarks((current) => [record, ...current])
-    setError(null)
   }, [bookId])
 
   const remove = useCallback(async (id: string) => {
-    await deleteBookmark(id)
-    setBookmarks((current) => current.filter((bookmark) => bookmark.id !== id))
+    try {
+      await deleteBookmark(id)
+      setBookmarks((current) => current.filter((bookmark) => bookmark.id !== id))
+      setError(null)
+    } catch {
+      setError('Bookmark gagal dihapus.')
+    }
   }, [])
 
   return { bookmarks, loading, error, add, remove, refresh }
-}
-
-export function bookmarkFormatLabel(format: BookFormat) {
-  return format === 'epub' ? 'Posisi' : 'Halaman'
 }
