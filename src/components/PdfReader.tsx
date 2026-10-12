@@ -10,7 +10,7 @@ import { useReaderChrome } from '../hooks/useReaderChrome'
 import { literataFontFaces } from '../lib/fontFaces'
 import { pageHasText } from '../lib/pdf'
 import { fontOptions } from '../lib/settings'
-import type { ReaderSettings } from '../lib/types'
+import type { BookmarkRecord, ReaderSettings } from '../lib/types'
 import { DebugPanel } from './DebugPanel'
 import { FullscreenButton } from './FullscreenButton'
 import { PdfPage } from './PdfPage'
@@ -156,7 +156,7 @@ export function PdfReader({ bookId, settings, onSettingsChange, onClose }: PdfRe
     })
   }, [bookmarks.add, settings.pdfReflow, reflowPercentage, view.page, view.numPages, view.percentage])
 
-  const selectBookmark = useCallback((bookmark: import('../lib/types').BookmarkRecord) => {
+  const selectBookmark = useCallback((bookmark: BookmarkRecord) => {
     if (settings.pdfReflow) reflowGoToPercentage(bookmark.percentage)
     else if (bookmark.page) view.setPage(bookmark.page)
     chrome.closePanel()
