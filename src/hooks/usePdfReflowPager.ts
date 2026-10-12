@@ -68,6 +68,11 @@ export function usePdfReflowPager(active: boolean, maxWidth: number, contentKey:
 
   const goNext = useCallback(() => setPage((current) => Math.min(current + 1, total - 1)), [total])
   const goPrev = useCallback(() => setPage((current) => Math.max(current - 1, 0)), [])
+  const goToPercentage = useCallback(
+    (percentage: number) =>
+      setPage(Math.min(total - 1, Math.max(0, Math.round(percentage * (total - 1))))),
+    [total],
+  )
 
   const canPrev = page > 0
   const canNext = page < total - 1
@@ -89,6 +94,7 @@ export function usePdfReflowPager(active: boolean, maxWidth: number, contentKey:
     total,
     goNext,
     goPrev,
+    goToPercentage,
     canPrev,
     canNext,
     percentage,
