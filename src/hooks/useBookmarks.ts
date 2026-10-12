@@ -6,24 +6,25 @@ type NewBookmark = Omit<BookmarkRecord, 'id' | 'bookId' | 'createdAt'>
 
 export function useBookmarks(bookId: string) {
   const [bookmarks, setBookmarks] = useState<BookmarkRecord[]>([])
-  const [loading, setLoading] = useState(true)
+  const [loadedBookId, setLoadedBookId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  const refresh = useCallback(async () => {
-    setLoading(true)
-    try {
-      setBookmarks(await listBookmarks(bookId))
+  useEffect(() => {
+    let active = true
+    void listBookmarks(bookId).then((records) => {
+      if (!active) return
+      setBookmarks(records)
       setError(null)
-    } catch {
+      setLoadedBookId(bookId)
+    }).catch(() => {
+      if (!active) return
       setError('Bookmark gagal dimuat.')
-    } finally {
-      setLoading(false)
+      setLoadedBookId(bookId)
+    })
+    return () => {
+      active = false
     }
   }, [bookId])
-
-  useEffect(() => {
-    void refresh()
-  }, [refresh])
 
   const add = useCallback(async (bookmark: NewBookmark) => {
     try {
@@ -51,5 +52,5 @@ export function useBookmarks(bookId: string) {
     }
   }, [])
 
-  return { bookmarks, loading, error, add, remove, refresh }
+  return { bookmarks, loading: loadedBookId !== bookId, error, add, remove }
 }
