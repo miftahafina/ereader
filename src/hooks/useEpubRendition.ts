@@ -2,6 +2,7 @@ import ePub from 'epubjs'
 import type { Book, Contents, Location, NavItem, Rendition } from 'epubjs'
 import { useEffect, useRef, useState } from 'react'
 import { getBook } from '../lib/db'
+import { firstVisibleEpubWord } from '../lib/epub-bookmark'
 import { IS_WEBKIT, SPREAD_MIN_WIDTH } from '../lib/reader-constants'
 import { applyReaderTheme, buildReaderCss } from '../lib/reader-theme'
 import type { BookRecord, FlowMode, ReaderSettings } from '../lib/types'
@@ -61,6 +62,7 @@ export function useEpubRendition({
     let localRendition: Rendition | null = null
     let resizeObserver: ResizeObserver | null = null
     let handleFullscreen: (() => void) | null = null
+    let visibleCfi: string | undefined
 
     const handleKey = (event: KeyboardEvent) => handlersRef.current.onKey(event)
 
@@ -128,11 +130,15 @@ export function useEpubRendition({
       await rendition.display(saved?.cfi)
       if (cancelled) return
       setLoading(false)
+      if (viewerRef.current) visibleCfi = firstVisibleEpubWord(rendition, viewerRef.current)?.cfi
 
       rendition.on('relocated', (location: Location) => {
         if (!location?.start) return
         handlersRef.current.onDismissPopup()
         const cfi = location.start.cfi
+        visibleCfi = viewerRef.current
+          ? firstVisibleEpubWord(rendition, viewerRef.current)?.cfi ?? cfi
+          : cfi
         const pct = typeof location.start.percentage === 'number' ? location.start.percentage : 0
         setPercentage(pct)
         setCurrentHref(location.start.href)
@@ -152,12 +158,13 @@ export function useEpubRendition({
           !force &&
           last &&
           Math.abs(width - last.width) < 2 &&
-          Math.abs(height - last.height) < 160
+          Math.abs(height - last.height) < 2
         ) {
           return
         }
         lastSizeRef.current = { width, height }
-        rendition.resize(width, height)
+        const resize = rendition.resize as (width: number, height: number, cfi?: string) => void
+        resize.call(rendition, width, height, visibleCfi)
       }
 
       resizeObserver = new ResizeObserver(() => applyResize())

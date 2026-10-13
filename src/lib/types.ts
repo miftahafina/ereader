@@ -14,11 +14,19 @@ export interface BookRecord {
 
 export type BookMeta = Omit<BookRecord, 'data'>
 
+export interface PdfReflowAnchor {
+  page: number
+  block: number
+  offset: number
+  text: string
+}
+
 export interface BookmarkRecord {
   id: string
   bookId: string
   format: BookFormat
   cfi?: string
+  reflowAnchor?: PdfReflowAnchor
   page?: number
   percentage: number
   label: string

@@ -63,6 +63,9 @@ export function PdfReader({ bookId, settings, onSettingsChange, onClose }: PdfRe
     goNext: reflowNext,
     goPrev: reflowPrev,
     goToPercentage: reflowGoToPercentage,
+    getAnchor: getReflowAnchor,
+    goToAnchor: reflowGoToAnchor,
+    isAnchorOnPage: isReflowAnchorOnPage,
     canPrev: reflowCanPrev,
     canNext: reflowCanNext,
     percentage: reflowPercentage,
@@ -151,23 +154,27 @@ export function PdfReader({ bookId, settings, onSettingsChange, onClose }: PdfRe
   }, [settings.pdfReflow, reflowNext, reflowPrev, view, chrome])
 
   const addBookmark = useCallback(async () => {
+    const reflowAnchor = settings.pdfReflow ? getReflowAnchor() : null
+    if (settings.pdfReflow && !reflowAnchor) return
     const percentage = settings.pdfReflow ? reflowPercentage : view.percentage
     const page = settings.pdfReflow
-      ? Math.round(percentage * Math.max(0, view.numPages - 1)) + 1
+      ? reflowAnchor!.page
       : view.page
     await addStoredBookmark({
       format: 'pdf',
       page,
       percentage,
-      label: `Halaman ${page}`,
+      reflowAnchor: reflowAnchor ?? undefined,
+      label: reflowAnchor?.text || `Halaman ${page}`,
     })
-  }, [addStoredBookmark, settings.pdfReflow, reflowPercentage, view])
+  }, [addStoredBookmark, settings.pdfReflow, getReflowAnchor, reflowPercentage, view])
 
   const selectBookmark = useCallback((bookmark: BookmarkRecord) => {
-    if (settings.pdfReflow) reflowGoToPercentage(bookmark.percentage)
+    if (settings.pdfReflow && bookmark.reflowAnchor) reflowGoToAnchor(bookmark.reflowAnchor)
+    else if (settings.pdfReflow) reflowGoToPercentage(bookmark.percentage)
     else if (bookmark.page) view.setPage(bookmark.page)
     closePanel()
-  }, [settings.pdfReflow, reflowGoToPercentage, view, closePanel])
+  }, [settings.pdfReflow, reflowGoToAnchor, reflowGoToPercentage, view, closePanel])
 
   const touchStartX = useRef<number | null>(null)
   const handleTouchStart = (event: React.TouchEvent) => {
@@ -188,7 +195,9 @@ export function PdfReader({ bookId, settings, onSettingsChange, onClose }: PdfRe
   const displayPercentage = settings.pdfReflow ? reflowPercentage : view.percentage
   const isBookmarked = bookmarkRecords.some((bookmark) =>
     settings.pdfReflow
-      ? Math.round(bookmark.percentage * (reflowTotal - 1)) === reflowPage
+      ? bookmark.reflowAnchor
+        ? isReflowAnchorOnPage(bookmark.reflowAnchor)
+        : Math.round(bookmark.percentage * (reflowTotal - 1)) === reflowPage
       : bookmark.page === view.page,
   )
   const fontStack = fontOptions.find((option) => option.value === settings.fontFamily)?.stack ?? ''
@@ -274,18 +283,20 @@ export function PdfReader({ bookId, settings, onSettingsChange, onClose }: PdfRe
                 >
                   {reflow.sections.map((section) =>
                     section.blocks.length > 0 ? (
-                      <section key={section.page} className="pdf-reflow-page">
+                      <section key={section.page} className="pdf-reflow-page" data-pdf-page={section.page}>
                         {section.blocks.map((block, index) =>
                           block.kind === 'heading' ? (
-                            <h3 key={index}>{block.text}</h3>
+                            <h3 key={index} data-reflow-block={index}>{block.text}</h3>
                           ) : (
-                            <p key={index}>{block.text}</p>
+                            <p key={index} data-reflow-block={index}>{block.text}</p>
                           ),
                         )}
                       </section>
                     ) : (
-                      <section key={section.page} className="pdf-reflow-page pdf-reflow-scan">
-                        Halaman {section.page}: hasil scan tanpa teks — buka mode normal untuk melihat gambar.
+                      <section key={section.page} className="pdf-reflow-page pdf-reflow-scan" data-pdf-page={section.page}>
+                        <span data-reflow-block={0}>
+                          {`Halaman ${section.page}: hasil scan tanpa teks — buka mode normal untuk melihat gambar.`}
+                        </span>
                       </section>
                     ),
                   )}
