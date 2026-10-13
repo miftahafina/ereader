@@ -64,7 +64,7 @@ export function useReaderSession(bookId: string, settings: ReaderSettings) {
   const highlightRef = useRef<string | null>(null)
 
   const chrome = useReaderChrome()
-  const wordLookup = useWordLookup()
+  const wordLookup = useWordLookup(settingsRef)
   const tts = useReaderTts(renditionRef, settingsRef)
   const translation = useSectionTranslation(renditionRef, settingsRef)
   const search = useBookSearch(bookRef, renditionRef)

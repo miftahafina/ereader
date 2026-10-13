@@ -1,4 +1,6 @@
 .word-popup {
+  max-height: min(70vh, 620px);
+  overflow-y: auto;
   position: fixed;
   z-index: 60;
   width: max-content;
@@ -94,6 +96,27 @@
   100% {
     background-position: 0 0;
   }
+}
+.word-popup-divider {
+  width: 32px;
+  height: 1px;
+  border: 0;
+  margin: 10px auto;
+  background: var(--border);
+}
+.word-popup-translation {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.word-popup-translation-label {
+  color: var(--text-muted);
+  font-size: 11px;
+}
+.word-popup-translation-text {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 .word-popup-list {
   list-style: none;
