@@ -1,5 +1,6 @@
 import type { TiltNavigationControl } from '../hooks/useTiltNavigation'
 import type { ReaderSettings } from '../lib/types'
+import { wristSpeedThreshold } from '../lib/tilt-navigation'
 import { SliderSetting } from './SettingsControls'
 
 interface TiltNavigationSettingsProps {
@@ -29,7 +30,7 @@ export function TiltNavigationSettings({ settings, onChange, motion }: TiltNavig
           onChange={() => { void toggle() }}
         />
       </label>
-      <p className="setting-help">Pegang HP sebentar, lalu putar pergelangan tangan sedikit ke kanan untuk berikutnya atau ke kiri untuk sebelumnya, tanpa mengocok HP. Kembali ke posisi baca sebelum mengulang. Ditahan miring hanya pindah satu halaman.</p>
+      <p className="setting-help">Pegang HP sebentar, lalu putar atau puntir pergelangan tangan dengan cepat ke kanan untuk berikutnya, ke kiri untuk sebelumnya. Gerakan pelan diabaikan; tidak perlu sudut besar. Satu gerakan cepat memindahkan satu halaman. Diamkan sebentar sebelum mengulang agar gerakan balik tidak ikut dihitung.</p>
       {settings.tiltNavigation && (
         <div className="setting-group">
           <p className="setting-help" role="status">{motion.sensorStatus}. Panel terbuka: uji gerakan tanpa memindahkan halaman.</p>
@@ -39,8 +40,8 @@ export function TiltNavigationSettings({ settings, onChange, motion }: TiltNavig
       )}
       {settings.tiltNavigation && (
         <SliderSetting
-          label="Sensitivitas kemiringan"
-          display={`${settings.tiltSensitivity} / 5`}
+          label="Sensitivitas gerakan cepat"
+          display={`${settings.tiltSensitivity} / 5 · ≥ ${wristSpeedThreshold(settings.tiltSensitivity)}°/dtk`}
           min={1}
           max={5}
           step={1}

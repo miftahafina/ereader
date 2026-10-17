@@ -6,13 +6,17 @@ export function screenRotation(alpha: number, beta: number, gamma: number, scree
   }
 }
 
+export function wristSpeedThreshold(sensitivity: number) {
+  return 110 - Math.min(5, Math.max(1, sensitivity)) * 15
+}
+
 export function createWristDetector(sensitivity: number) {
-  const threshold = 22 - Math.min(5, Math.max(1, sensitivity)) * 3
+  const threshold = wristSpeedThreshold(sensitivity)
   let lastAt: number | null = null
   let stableSince: number | null = null
   let calibrated = false
-  let rollAngle = 0
-  let twistAngle = 0
+  let candidate = 0
+  let fastSince = 0
   let armed = true
   let blockedUntil = 0
 
@@ -23,8 +27,7 @@ export function createWristDetector(sensitivity: number) {
     if (elapsed < 0 || elapsed > 250) {
       calibrated = false
       stableSince = null
-      rollAngle = 0
-      twistAngle = 0
+      candidate = 0
       armed = true
       return null
     }
@@ -40,23 +43,30 @@ export function createWristDetector(sensitivity: number) {
       }
       return null
     }
-    rollAngle += (Math.abs(roll) >= 2 ? roll : 0) * elapsed / 1000
-    twistAngle += (Math.abs(twist) >= 2 ? twist : 0) * elapsed / 1000
-    if (Math.max(Math.abs(rollAngle), Math.abs(twistAngle)) <= 5 && speed < 8) {
+    if (speed < 12) {
       stableSince ??= at
       if (at >= blockedUntil && at - stableSince >= 200) {
         armed = true
-        rollAngle = 0
-        twistAngle = 0
       }
+      candidate = 0
       return null
     }
     stableSince = null
-    if (!armed || at < blockedUntil || speed < 12) return null
-    const displacement = Math.abs(rollAngle) >= Math.abs(twistAngle) ? rollAngle : twistAngle
-    if (Math.abs(displacement) < threshold) return null
+    const rate = Math.abs(roll) >= Math.abs(twist) ? roll : twist
+    if (!armed || at < blockedUntil || Math.abs(rate) < threshold) {
+      candidate = 0
+      return null
+    }
+    const nextCandidate = Math.sign(rate) * (Math.abs(roll) >= Math.abs(twist) ? 1 : 2)
+    if (candidate !== nextCandidate) {
+      candidate = nextCandidate
+      fastSince = at
+      return null
+    }
+    if (at - fastSince < 20) return null
     armed = false
-    blockedUntil = at + 650
-    return displacement > 0 ? 'next' : 'prev'
+    blockedUntil = at + 700
+    candidate = 0
+    return rate > 0 ? 'next' : 'prev'
   }
 }

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { createWristDetector, screenRotation } from '../src/lib/tilt-navigation.ts'
+import { createWristDetector, screenRotation, wristSpeedThreshold } from '../src/lib/tilt-navigation.ts'
 
 function harness(sensitivity = 3) {
   const detect = createWristDetector(sensitivity)
@@ -18,7 +18,7 @@ function harness(sensitivity = 3) {
 }
 
 test('clockwise and counterclockwise wrist rolls navigate', () => {
-  for (const [rate, expected] of [[60, 'next'], [-60, 'prev']]) {
+  for (const [rate, expected] of [[120, 'next'], [-120, 'prev']]) {
     const h = harness()
     h.move()
     h.move(rate)
@@ -27,7 +27,7 @@ test('clockwise and counterclockwise wrist rolls navigate', () => {
 })
 
 test('wrist twists work while the phone is upright without a gravity change', () => {
-  for (const [rate, expected] of [[60, 'next'], [-60, 'prev']]) {
+  for (const [rate, expected] of [[120, 'next'], [-120, 'prev']]) {
     const h = harness()
     h.move()
     h.move(0, rate)
@@ -35,16 +35,15 @@ test('wrist twists work while the phone is upright without a gravity change', ()
   }
 })
 
-test('holding tilted and returning to neutral do not turn extra pages', () => {
+test('immediate rebound is ignored, another fast gesture works after settling', () => {
   const h = harness()
   h.move()
-  h.move(60)
-  h.move(0, 0, 100)
+  h.move(120, 0, 5)
+  h.move(-120, 0, 5)
   assert.deepEqual(h.results, ['next'])
-  h.move(-60)
   h.move(0, 0, 50)
   assert.deepEqual(h.results, ['next'])
-  h.move(-60)
+  h.move(-120, 0, 5)
   assert.deepEqual(h.results, ['next', 'prev'])
 })
 
@@ -66,33 +65,67 @@ test('small jitter and isolated short impulses are ignored', () => {
 
 test('calibration waits for a steady grip', () => {
   const h = harness()
-  h.move(60)
+  h.move(120)
   assert.deepEqual(h.results, [])
   h.move()
-  h.move(60)
+  h.move(120)
   assert.deepEqual(h.results, ['next'])
 })
 
 test('sensor gaps recalibrate without turning pages', () => {
   const h = harness()
   h.move()
-  h.sample(60, 0, 1000)
-  h.move(60)
+  h.sample(120, 0, 1000)
+  h.move(120)
   assert.deepEqual(h.results, [])
   h.move()
-  h.move(60)
+  h.move(120)
   assert.deepEqual(h.results, ['next'])
 })
 
-test('higher sensitivity accepts smaller wrist rotations', () => {
+test('higher sensitivity accepts lower speeds', () => {
   const low = harness(1)
   const high = harness(5)
   for (const h of [low, high]) {
     h.move()
-    h.move(30, 0, 20)
+    h.move(50, 0, 5)
   }
   assert.deepEqual(low.results, [])
   assert.deepEqual(high.results, ['next'])
+})
+
+test('a brief fast rotation with a small angle triggers immediately', () => {
+  const h = harness()
+  h.move()
+  h.sample(100)
+  h.sample(100)
+  assert.deepEqual(h.results, ['next'])
+})
+
+test('slow rotations are ignored regardless of their total angle', () => {
+  const h = harness()
+  h.move()
+  h.move(30, 0, 200)
+  h.move()
+  h.move(0, -30, 200)
+  assert.deepEqual(h.results, [])
+})
+
+test('changing direction or axis cannot combine unrelated fast readings', () => {
+  const h = harness()
+  h.move()
+  for (let i = 0; i < 20; i++) h.sample(i % 2 ? 120 : -120)
+  h.move()
+  for (let i = 0; i < 20; i++) h.sample(i % 2 ? 120 : 0, i % 2 ? 0 : 120)
+  assert.deepEqual(h.results, [])
+})
+
+test('speed thresholds match settings and are bounded', () => {
+  assert.equal(wristSpeedThreshold(1), 95)
+  assert.equal(wristSpeedThreshold(3), 65)
+  assert.equal(wristSpeedThreshold(5), 35)
+  assert.equal(wristSpeedThreshold(0), 95)
+  assert.equal(wristSpeedThreshold(10), 35)
 })
 
 test('invalid readings are ignored', () => {
