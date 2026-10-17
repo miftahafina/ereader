@@ -10,13 +10,13 @@ import {
   SliderSetting,
 } from './SettingsControls'
 import { SettingIcon } from './SettingsIcon'
-import { ShakeNavigationSettings } from './ShakeNavigationSettings'
-import type { ShakeNavigationControl } from '../hooks/useShakeNavigation'
+import { TiltNavigationSettings } from './TiltNavigationSettings'
+import type { TiltNavigationControl } from '../hooks/useTiltNavigation'
 
 interface SettingsPanelProps {
   settings: ReaderSettings
   onChange: (patch: Partial<ReaderSettings>) => void
-  motion: ShakeNavigationControl
+  motion: TiltNavigationControl
 }
 
 const themeOptions: { value: ReaderTheme; label: string }[] = [
@@ -202,7 +202,7 @@ export function SettingsPanel({ settings, onChange, motion }: SettingsPanelProps
         onChange={(grain) => onChange({ grain })}
       />
 
-      <ShakeNavigationSettings settings={settings} onChange={onChange} motion={motion} />
+      <TiltNavigationSettings settings={settings} onChange={onChange} motion={motion} />
 
       <h2 className="sidebar-title">Terjemahan</h2>
 

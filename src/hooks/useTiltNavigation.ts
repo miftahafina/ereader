@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
-import { createShakeDetector } from '../lib/shake-navigation'
+import { createTiltDetector, horizontalTilt } from '../lib/tilt-navigation'
 import { useLatest } from './useLatest'
 
-type MotionConstructor = typeof DeviceMotionEvent & {
+type OrientationConstructor = typeof DeviceOrientationEvent & {
   requestPermission?: () => Promise<string>
 }
 
-interface ShakeNavigationOptions {
+interface TiltNavigationOptions {
   enabled: boolean
   sensitivity: number
   paused: boolean
@@ -14,10 +14,10 @@ interface ShakeNavigationOptions {
   onPrev: () => void
 }
 
-export function useShakeNavigation(options: ShakeNavigationOptions) {
+export function useTiltNavigation(options: TiltNavigationOptions) {
   const latest = useLatest(options)
-  const supported = window.isSecureContext && typeof DeviceMotionEvent !== 'undefined'
-  const needsPermission = supported && typeof (DeviceMotionEvent as MotionConstructor).requestPermission === 'function'
+  const supported = window.isSecureContext && typeof DeviceOrientationEvent !== 'undefined'
+  const needsPermission = supported && typeof (DeviceOrientationEvent as OrientationConstructor).requestPermission === 'function'
   const [granted, setGranted] = useState(!needsPermission)
   const [message, setMessage] = useState('')
   const [requesting, setRequesting] = useState(false)
@@ -32,8 +32,8 @@ export function useShakeNavigation(options: ShakeNavigationOptions) {
     if (!supported || requesting) return false
     setRequesting(true)
     try {
-      const request = (DeviceMotionEvent as MotionConstructor).requestPermission
-      const allowed = !request || await request.call(DeviceMotionEvent) === 'granted'
+      const request = (DeviceOrientationEvent as OrientationConstructor).requestPermission
+      const allowed = !request || await request.call(DeviceOrientationEvent) === 'granted'
       if (mounted.current) {
         setGranted(allowed)
         setMessage(allowed ? '' : 'Izin sensor ditolak. Izinkan akses gerak di pengaturan browser, lalu coba lagi.')
@@ -48,19 +48,18 @@ export function useShakeNavigation(options: ShakeNavigationOptions) {
   }
 
   useEffect(() => {
-    if (!options.enabled || !granted || !supported) return
-    let detector = createShakeDetector(options.sensitivity)
+    if (!options.enabled || options.paused || !granted || !supported) return
+    let detector = createTiltDetector(options.sensitivity)
     let angle = screen.orientation?.angle ?? window.orientation ?? 0
     let received = false
     const timeout = window.setTimeout(() => {
       if (!received) setMessage('Data sensor tidak tersedia. Periksa dukungan dan izin sensor browser.')
     }, 4000)
     const reset = () => {
-      detector = createShakeDetector(latest.current.sensitivity)
+      detector = createTiltDetector(latest.current.sensitivity)
     }
-    const onMotion = (event: DeviceMotionEvent) => {
-      const acceleration = event.acceleration
-      if (acceleration?.x == null || acceleration.y == null || acceleration.z == null) return
+    const onOrientation = (event: DeviceOrientationEvent) => {
+      if (event.beta == null || event.gamma == null || !Number.isFinite(event.beta) || !Number.isFinite(event.gamma)) return
       if (!received) {
         received = true
         setMessage('')
@@ -76,21 +75,18 @@ export function useShakeNavigation(options: ShakeNavigationOptions) {
         reset()
         return
       }
-      const radians = angle * Math.PI / 180
-      const x = acceleration.x * Math.cos(radians) + acceleration.y * Math.sin(radians)
-      const y = -acceleration.x * Math.sin(radians) + acceleration.y * Math.cos(radians)
-      const direction = detector({ x, y, z: acceleration.z, at: performance.now() })
+      const direction = detector(horizontalTilt(event.beta, event.gamma, angle), performance.now())
       if (direction === 'next') latest.current.onNext()
       else if (direction === 'prev') latest.current.onPrev()
     }
-    window.addEventListener('devicemotion', onMotion)
+    window.addEventListener('deviceorientation', onOrientation)
     document.addEventListener('visibilitychange', reset)
     return () => {
       window.clearTimeout(timeout)
-      window.removeEventListener('devicemotion', onMotion)
+      window.removeEventListener('deviceorientation', onOrientation)
       document.removeEventListener('visibilitychange', reset)
     }
-  }, [options.enabled, options.sensitivity, granted, supported, latest])
+  }, [options.enabled, options.sensitivity, options.paused, granted, supported, latest])
 
   return {
     supported,
@@ -105,4 +101,4 @@ export function useShakeNavigation(options: ShakeNavigationOptions) {
   }
 }
 
-export type ShakeNavigationControl = ReturnType<typeof useShakeNavigation>
+export type TiltNavigationControl = ReturnType<typeof useTiltNavigation>

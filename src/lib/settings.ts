@@ -17,8 +17,8 @@ export const defaultSettings: ReaderSettings = {
   ttsVoice: '',
   translateTo: 'id',
   debugMode: false,
-  shakeNavigation: false,
-  shakeSensitivity: 3,
+  tiltNavigation: false,
+  tiltSensitivity: 3,
   pdfSpread: 'auto',
   pdfCrop: false,
   pdfCropMargin: 8,
@@ -138,9 +138,15 @@ export function loadSettings(): ReaderSettings {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return { ...defaultSettings }
-    const parsed = JSON.parse(raw) as Omit<Partial<ReaderSettings>, 'darkBackground'> & { darkBackground?: unknown }
+    const parsed = JSON.parse(raw) as Omit<Partial<ReaderSettings>, 'darkBackground'> & {
+      darkBackground?: unknown
+      shakeNavigation?: boolean
+      shakeSensitivity?: number
+    }
     const darkBackground = parseDarkBackground(parsed.darkBackground)
-    return { ...defaultSettings, ...parsed, darkBackground }
+    const tiltNavigation = parsed.tiltNavigation ?? parsed.shakeNavigation ?? defaultSettings.tiltNavigation
+    const tiltSensitivity = parsed.tiltSensitivity ?? parsed.shakeSensitivity ?? defaultSettings.tiltSensitivity
+    return { ...defaultSettings, ...parsed, darkBackground, tiltNavigation, tiltSensitivity }
   } catch {
     return { ...defaultSettings }
   }

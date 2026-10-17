@@ -15,7 +15,7 @@ import { useReaderNavigation } from './useReaderNavigation'
 import { useReaderTts } from './useReaderTts'
 import { useSectionTranslation } from './useSectionTranslation'
 import { useWordLookup } from './useWordLookup'
-import { useShakeNavigation } from './useShakeNavigation'
+import { useTiltNavigation } from './useTiltNavigation'
 
 export function useReaderSession(bookId: string, settings: ReaderSettings) {
   const settingsRef = useLatest(settings)
@@ -86,9 +86,9 @@ export function useReaderSession(bookId: string, settings: ReaderSettings) {
     void renditionRef.current?.prev()
   }, [])
 
-  const motion = useShakeNavigation({
-    enabled: settings.shakeNavigation,
-    sensitivity: settings.shakeSensitivity,
+  const motion = useTiltNavigation({
+    enabled: settings.tiltNavigation,
+    sensitivity: settings.tiltSensitivity,
     paused: !!chrome.panel || !!wordLookup.popup || engine.loading || !!engine.error,
     onNext: goNext,
     onPrev: goPrev,

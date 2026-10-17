@@ -7,7 +7,7 @@ import { usePdfReflowPager } from '../hooks/usePdfReflowPager'
 import { usePdfView } from '../hooks/usePdfView'
 import { useBookmarks } from '../hooks/useBookmarks'
 import { useReaderChrome } from '../hooks/useReaderChrome'
-import { useShakeNavigation } from '../hooks/useShakeNavigation'
+import { useTiltNavigation } from '../hooks/useTiltNavigation'
 import { literataFontFaces } from '../lib/fontFaces'
 import { pageHasText } from '../lib/pdf'
 import { fontOptions } from '../lib/settings'
@@ -74,9 +74,9 @@ export function PdfReader({ bookId, settings, onSettingsChange, onClose }: PdfRe
     contentStyle: reflowContentStyle,
   } = usePdfReflowPager(settings.pdfReflow, settings.maxWidth, reflowLayoutKey)
 
-  const motion = useShakeNavigation({
-    enabled: settings.shakeNavigation,
-    sensitivity: settings.shakeSensitivity,
+  const motion = useTiltNavigation({
+    enabled: settings.tiltNavigation,
+    sensitivity: settings.tiltSensitivity,
     paused: !!chrome.panel || loading || !!error || (settings.pdfReflow && reflow.loaded < reflow.total),
     onNext: settings.pdfReflow ? reflowNext : view.goNext,
     onPrev: settings.pdfReflow ? reflowPrev : view.goPrev,
