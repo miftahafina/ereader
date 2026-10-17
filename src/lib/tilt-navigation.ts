@@ -1,64 +1,62 @@
-export function horizontalTilt(beta: number, gamma: number, screenAngle: number): number {
-  const radians = Math.PI / 180
-  const x = Math.cos(beta * radians) * Math.sin(gamma * radians)
-  const y = Math.sin(beta * radians)
-  const horizontal = x * Math.cos(screenAngle * radians) - y * Math.sin(screenAngle * radians)
-  return Math.asin(Math.max(-1, Math.min(1, horizontal))) / radians
+export function screenRotation(alpha: number, beta: number, gamma: number, screenAngle: number) {
+  const radians = screenAngle * Math.PI / 180
+  return {
+    roll: -alpha,
+    twist: gamma * Math.cos(radians) - beta * Math.sin(radians),
+  }
 }
 
-export function createTiltDetector(sensitivity: number) {
-  const threshold = 32 - Math.min(5, Math.max(1, sensitivity)) * 4
-  let baseline: number | null = null
-  let candidate: number | null = null
-  let stableSince = 0
-  let lastAt = 0
-  let neutralSince: number | null = null
+export function createWristDetector(sensitivity: number) {
+  const threshold = 22 - Math.min(5, Math.max(1, sensitivity)) * 3
+  let lastAt: number | null = null
+  let stableSince: number | null = null
+  let calibrated = false
+  let rollAngle = 0
+  let twistAngle = 0
   let armed = true
-  let direction = 0
-  let tiltedSince = 0
   let blockedUntil = 0
 
-  return (angle: number, at: number): 'next' | 'prev' | null => {
-    if (![angle, at].every(Number.isFinite)) return null
-    if (at - lastAt > 600) {
-      baseline = null
-      candidate = null
-      direction = 0
-      neutralSince = null
-      armed = true
-    }
+  return (roll: number, twist: number, at: number): 'next' | 'prev' | null => {
+    if (![roll, twist, at].every(Number.isFinite)) return null
+    const elapsed = lastAt === null ? 0 : at - lastAt
     lastAt = at
-    if (baseline === null) {
-      if (candidate === null || Math.abs(angle - candidate) > 3) {
-        candidate = angle
-        stableSince = at
-      } else if (at - stableSince >= 350) {
-        baseline = candidate
+    if (elapsed < 0 || elapsed > 250) {
+      calibrated = false
+      stableSince = null
+      rollAngle = 0
+      twistAngle = 0
+      armed = true
+      return null
+    }
+    const speed = Math.hypot(roll, twist)
+    if (!calibrated) {
+      if (speed > 8) stableSince = null
+      else {
+        stableSince ??= at
+        if (at - stableSince >= 300) {
+          calibrated = true
+          stableSince = null
+        }
       }
       return null
     }
-    const delta = angle - baseline
-    if (Math.abs(delta) <= 6) {
-      neutralSince ??= at
-      if (at >= blockedUntil && at - neutralSince >= 200) armed = true
-      direction = 0
+    rollAngle += (Math.abs(roll) >= 2 ? roll : 0) * elapsed / 1000
+    twistAngle += (Math.abs(twist) >= 2 ? twist : 0) * elapsed / 1000
+    if (Math.max(Math.abs(rollAngle), Math.abs(twistAngle)) <= 5 && speed < 8) {
+      stableSince ??= at
+      if (at >= blockedUntil && at - stableSince >= 200) {
+        armed = true
+        rollAngle = 0
+        twistAngle = 0
+      }
       return null
     }
-    neutralSince = null
-    if (!armed || at < blockedUntil || Math.abs(delta) < threshold) {
-      direction = 0
-      return null
-    }
-    const sign = Math.sign(delta)
-    if (direction !== sign) {
-      direction = sign
-      tiltedSince = at
-      return null
-    }
-    if (at - tiltedSince < 120) return null
+    stableSince = null
+    if (!armed || at < blockedUntil || speed < 12) return null
+    const displacement = Math.abs(rollAngle) >= Math.abs(twistAngle) ? rollAngle : twistAngle
+    if (Math.abs(displacement) < threshold) return null
     armed = false
-    blockedUntil = at + 600
-    direction = 0
-    return sign > 0 ? 'next' : 'prev'
+    blockedUntil = at + 650
+    return displacement > 0 ? 'next' : 'prev'
   }
 }

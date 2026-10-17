@@ -36,9 +36,9 @@ Pembaca **EPUB & PDF** yang berjalan **sepenuhnya di browser**. Cukup seret (dra
 
 ## Navigasi dengan kemiringan HP
 
-Aktifkan **Miringkan untuk pindah halaman** di pengaturan reader, lalu izinkan akses sensor jika diminta. Tutup panel pengaturan dan pegang HP pada posisi nyaman sebentar agar posisi awal terkalibrasi. Miringkan ke kanan/kiri tanpa perlu mengocok atau menyentakkan HP. Ditahan miring hanya memindahkan satu halaman; kembalikan ke posisi awal sebelum memiringkan lagi. Sensitivitas 1–5 dapat diatur, dengan angka lebih tinggi membutuhkan sudut lebih kecil. Untuk menentukan ulang posisi awal, buka lalu tutup panel pengaturan.
+Aktifkan **Miringkan untuk pindah halaman** di pengaturan reader, lalu izinkan akses sensor jika diminta. Pegang HP pada posisi nyaman sebentar, lalu putar pergelangan tangan ke kanan/kiri tanpa perlu mengocok HP. Deteksi memakai putaran giroskop, bukan sudut terhadap gravitasi, sehingga puntiran saat HP tegak juga terbaca. Ditahan miring hanya memindahkan satu halaman; kembalikan ke posisi awal sebelum memiringkan lagi. Sensitivitas 1–5 dapat diatur, dengan angka lebih tinggi membutuhkan sudut lebih kecil. Untuk menentukan ulang posisi awal, buka lalu tutup panel pengaturan.
 
-Fitur memerlukan HTTPS (atau localhost), sensor orientasi, serta browser yang mendukung Device Orientation. Jika izin perlu diberikan ulang, gunakan **Aktifkan izin sensor**. Arah mengikuti orientasi layar portrait/landscape. Navigasi dijeda saat panel terbuka atau tab berada di latar belakang, lalu posisi awal dikalibrasi ulang saat kembali membaca. Navigasi sentuh dan keyboard tetap tersedia bila sensor tidak didukung.
+Fitur memerlukan HTTPS (atau localhost), giroskop, serta browser yang mendukung `DeviceMotionEvent.rotationRate`. Di Chrome Android, pastikan **Setelan → Setelan situs → Sensor gerakan** diizinkan untuk situs reader. Jika izin perlu diberikan ulang, gunakan **Aktifkan izin sensor**. Panel pengaturan menampilkan status giroskop, kecepatan putaran, dan gestur terakhir; gerakan dapat diuji tanpa berpindah halaman saat panel terbuka. Arah mengikuti orientasi layar portrait/landscape. Navigasi dijeda saat panel terbuka atau tab berada di latar belakang, lalu posisi awal dikalibrasi ulang saat kembali membaca. Navigasi sentuh dan keyboard tetap tersedia bila sensor tidak didukung.
 
 ## Buku sampel
 

@@ -29,7 +29,14 @@ export function TiltNavigationSettings({ settings, onChange, motion }: TiltNavig
           onChange={() => { void toggle() }}
         />
       </label>
-      <p className="setting-help">Tutup panel, lalu pegang HP pada posisi nyaman sebentar untuk menentukan posisi awal. Miringkan ke kanan untuk berikutnya, ke kiri untuk sebelumnya. Kembali ke posisi awal sebelum mengulang. Ditahan miring hanya pindah satu halaman. Navigasi dijeda saat panel terbuka.</p>
+      <p className="setting-help">Pegang HP sebentar, lalu putar pergelangan tangan sedikit ke kanan untuk berikutnya atau ke kiri untuk sebelumnya, tanpa mengocok HP. Kembali ke posisi baca sebelum mengulang. Ditahan miring hanya pindah satu halaman.</p>
+      {settings.tiltNavigation && (
+        <div className="setting-group">
+          <p className="setting-help" role="status">{motion.sensorStatus}. Panel terbuka: uji gerakan tanpa memindahkan halaman.</p>
+          {motion.rotation && <p className="setting-help">Putaran: {Math.round(motion.rotation.roll)}°/dtk · Puntiran: {Math.round(motion.rotation.twist)}°/dtk</p>}
+          <p className="setting-help" role="status">Gerakan terakhir: {motion.lastGesture}</p>
+        </div>
+      )}
       {settings.tiltNavigation && (
         <SliderSetting
           label="Sensitivitas kemiringan"
