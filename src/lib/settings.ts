@@ -18,7 +18,7 @@ export const defaultSettings: ReaderSettings = {
   translateTo: 'id',
   debugMode: false,
   tiltNavigation: false,
-  tiltAngle: 15,
+  tiltAngle: 10,
   pdfSpread: 'auto',
   pdfCrop: false,
   pdfCropMargin: 8,

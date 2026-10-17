@@ -38,7 +38,7 @@ function relativeRotation(origin: OrientationQuaternion, current: OrientationQua
 }
 
 export function createTiltDetector(angle: number, screenAngle = 0) {
-  const threshold = Number.isFinite(angle) ? Math.min(30, Math.max(10, angle)) : 15
+  const threshold = Number.isFinite(angle) ? Math.min(30, Math.max(10, angle)) : 10
   const radians = screenAngle * Math.PI / 180
   let baseline: OrientationQuaternion | null = null
   let candidate: OrientationQuaternion | null = null

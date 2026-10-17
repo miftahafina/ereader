@@ -121,7 +121,7 @@ test('sensor gaps recalibrate at the new grip without navigating', () => {
 })
 
 test('configurable thresholds are clamped between ten and thirty degrees', () => {
-  for (const [threshold, gamma, expected] of [[10, 10, ['next']], [30, 29, []], [30, 30, ['next']], [1, 9, []], [100, 30, ['next']], [NaN, 15, ['next']]]) {
+  for (const [threshold, gamma, expected] of [[10, 10, ['next']], [30, 29, []], [30, 30, ['next']], [1, 9, []], [100, 30, ['next']], [NaN, 10, ['next']]]) {
     const h = harness(threshold)
     h.hold()
     h.hold(0, 0, gamma)
