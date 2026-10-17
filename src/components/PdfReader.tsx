@@ -76,7 +76,7 @@ export function PdfReader({ bookId, settings, onSettingsChange, onClose }: PdfRe
 
   const motion = useTiltNavigation({
     enabled: settings.tiltNavigation,
-    sensitivity: settings.tiltSensitivity,
+    angle: settings.tiltAngle,
     paused: !!chrome.panel || loading || !!error || (settings.pdfReflow && reflow.loaded < reflow.total),
     onNext: settings.pdfReflow ? reflowNext : view.goNext,
     onPrev: settings.pdfReflow ? reflowPrev : view.goPrev,

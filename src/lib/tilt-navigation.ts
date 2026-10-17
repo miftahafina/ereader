@@ -1,72 +1,102 @@
-export function screenRotation(alpha: number, beta: number, gamma: number, screenAngle: number) {
-  const radians = screenAngle * Math.PI / 180
+export interface OrientationQuaternion {
+  x: number
+  y: number
+  z: number
+  w: number
+}
+
+export interface TiltReading {
+  roll: number
+  twist: number
+  calibrated: boolean
+  direction: 'next' | 'prev' | null
+}
+
+export function orientationQuaternion(alpha: number, beta: number, gamma: number): OrientationQuaternion {
+  const halfRadians = Math.PI / 360
+  const a = alpha * halfRadians
+  const b = beta * halfRadians
+  const g = gamma * halfRadians
   return {
-    roll: -alpha,
-    twist: gamma * Math.cos(radians) - beta * Math.sin(radians),
+    x: Math.cos(a) * Math.sin(b) * Math.cos(g) - Math.sin(a) * Math.cos(b) * Math.sin(g),
+    y: Math.cos(a) * Math.cos(b) * Math.sin(g) + Math.sin(a) * Math.sin(b) * Math.cos(g),
+    z: Math.sin(a) * Math.cos(b) * Math.cos(g) + Math.cos(a) * Math.sin(b) * Math.sin(g),
+    w: Math.cos(a) * Math.cos(b) * Math.cos(g) - Math.sin(a) * Math.sin(b) * Math.sin(g),
   }
 }
 
-export function wristSpeedThreshold(sensitivity: number) {
-  return 110 - Math.min(5, Math.max(1, sensitivity)) * 15
+function relativeRotation(origin: OrientationQuaternion, current: OrientationQuaternion) {
+  const sign = origin.x * current.x + origin.y * current.y + origin.z * current.z + origin.w * current.w < 0 ? -1 : 1
+  const x = (origin.w * current.x - origin.x * current.w - origin.y * current.z + origin.z * current.y) * sign
+  const y = (origin.w * current.y + origin.x * current.z - origin.y * current.w - origin.z * current.x) * sign
+  const z = (origin.w * current.z - origin.x * current.y + origin.y * current.x - origin.z * current.w) * sign
+  const w = (origin.w * current.w + origin.x * current.x + origin.y * current.y + origin.z * current.z) * sign
+  const length = Math.hypot(x, y, z)
+  const degrees = 2 * Math.atan2(length, Math.max(0, w)) * 180 / Math.PI
+  const scale = length > 0.000001 ? degrees / length : 0
+  return { x: x * scale, y: y * scale, z: z * scale, degrees }
 }
 
-export function createWristDetector(sensitivity: number) {
-  const threshold = wristSpeedThreshold(sensitivity)
+export function createTiltDetector(angle: number, screenAngle = 0) {
+  const threshold = Number.isFinite(angle) ? Math.min(30, Math.max(10, angle)) : 15
+  const radians = screenAngle * Math.PI / 180
+  let baseline: OrientationQuaternion | null = null
+  let candidate: OrientationQuaternion | null = null
+  let stableSince = 0
   let lastAt: number | null = null
-  let stableSince: number | null = null
-  let calibrated = false
-  let candidate = 0
-  let fastSince = 0
   let armed = true
+  let neutralSince: number | null = null
+  let pending = 0
+  let pendingSince = 0
   let blockedUntil = 0
 
-  return (roll: number, twist: number, at: number): 'next' | 'prev' | null => {
-    if (![roll, twist, at].every(Number.isFinite)) return null
-    const elapsed = lastAt === null ? 0 : at - lastAt
-    lastAt = at
-    if (elapsed < 0 || elapsed > 250) {
-      calibrated = false
-      stableSince = null
-      candidate = 0
+  return (orientation: OrientationQuaternion, at: number): TiltReading | null => {
+    if (![orientation.x, orientation.y, orientation.z, orientation.w, at].every(Number.isFinite)) return null
+    if (lastAt !== null && (at - lastAt > 750 || at < lastAt)) {
+      baseline = null
+      candidate = null
       armed = true
-      return null
+      pending = 0
+      neutralSince = null
+      blockedUntil = 0
     }
-    const speed = Math.hypot(roll, twist)
-    if (!calibrated) {
-      if (speed > 8) stableSince = null
-      else {
-        stableSince ??= at
-        if (at - stableSince >= 300) {
-          calibrated = true
-          stableSince = null
-        }
+    lastAt = at
+    if (!baseline) {
+      if (!candidate || relativeRotation(candidate, orientation).degrees > 2) {
+        candidate = orientation
+        stableSince = at
+      } else if (at - stableSince >= 350) {
+        baseline = candidate
       }
-      return null
+      return { roll: 0, twist: 0, calibrated: !!baseline, direction: null }
     }
-    if (speed < 12) {
-      stableSince ??= at
-      if (at >= blockedUntil && at - stableSince >= 200) {
-        armed = true
-      }
-      candidate = 0
-      return null
+    const rotation = relativeRotation(baseline, orientation)
+    const roll = -rotation.z
+    const twist = rotation.y * Math.cos(radians) - rotation.x * Math.sin(radians)
+    const reading: TiltReading = { roll, twist, calibrated: true, direction: null }
+    if (Math.max(Math.abs(roll), Math.abs(twist)) <= 5.000001) {
+      neutralSince ??= at
+      if (at >= blockedUntil && at - neutralSince >= 150) armed = true
+      pending = 0
+      return reading
     }
-    stableSince = null
-    const rate = Math.abs(roll) >= Math.abs(twist) ? roll : twist
-    if (!armed || at < blockedUntil || Math.abs(rate) < threshold) {
-      candidate = 0
-      return null
+    neutralSince = null
+    const displacement = Math.abs(roll) >= Math.abs(twist) ? roll : twist
+    if (!armed || at < blockedUntil || Math.abs(displacement) + 0.000001 < threshold) {
+      pending = 0
+      return reading
     }
-    const nextCandidate = Math.sign(rate) * (Math.abs(roll) >= Math.abs(twist) ? 1 : 2)
-    if (candidate !== nextCandidate) {
-      candidate = nextCandidate
-      fastSince = at
-      return null
+    const direction = Math.sign(displacement)
+    if (pending !== direction) {
+      pending = direction
+      pendingSince = at
+      return reading
     }
-    if (at - fastSince < 20) return null
+    if (at - pendingSince < 80) return reading
     armed = false
-    blockedUntil = at + 700
-    candidate = 0
-    return rate > 0 ? 'next' : 'prev'
+    blockedUntil = at + 500
+    pending = 0
+    reading.direction = direction > 0 ? 'next' : 'prev'
+    return reading
   }
 }

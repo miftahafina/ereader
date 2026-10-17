@@ -1,159 +1,164 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { createWristDetector, screenRotation, wristSpeedThreshold } from '../src/lib/tilt-navigation.ts'
+import { createTiltDetector, orientationQuaternion } from '../src/lib/tilt-navigation.ts'
 
-function harness(sensitivity = 3) {
-  const detect = createWristDetector(sensitivity)
+function harness(angle = 15, screenAngle = 0) {
+  const detect = createTiltDetector(angle, screenAngle)
   let at = 0
+  let reading = null
   const results = []
-  const sample = (roll = 0, twist = 0, step = 20) => {
+  const sample = (alpha = 0, beta = 0, gamma = 0, step = 20) => {
     at += step
-    const result = detect(roll, twist, at)
-    if (result) results.push(result)
+    reading = detect(orientationQuaternion(alpha, beta, gamma), at)
+    if (reading?.direction) results.push(reading.direction)
+    return reading
   }
-  const move = (roll = 0, twist = 0, count = 25) => {
-    for (let i = 0; i < count; i++) sample(roll, twist)
+  const hold = (alpha = 0, beta = 0, gamma = 0, count = 25) => {
+    for (let i = 0; i < count; i++) sample(alpha, beta, gamma)
+    return reading
   }
-  return { sample, move, results }
+  return { sample, hold, results }
 }
 
-test('clockwise and counterclockwise wrist rolls navigate', () => {
-  for (const [rate, expected] of [[120, 'next'], [-120, 'prev']]) {
+test('15 degree right and left rolls turn pages', () => {
+  for (const [alpha, expected] of [[-15, 'next'], [15, 'prev']]) {
     const h = harness()
-    h.move()
-    h.move(rate)
+    h.hold()
+    const reading = h.hold(alpha)
+    assert.ok(Math.abs(Math.abs(reading.roll) - 15) < 0.001)
     assert.deepEqual(h.results, [expected])
   }
 })
 
-test('wrist twists work while the phone is upright without a gravity change', () => {
-  for (const [rate, expected] of [[120, 'next'], [-120, 'prev']]) {
+test('15 degree twists turn pages while the phone is upright', () => {
+  for (const [gamma, expected] of [[15, 'next'], [-15, 'prev']]) {
     const h = harness()
-    h.move()
-    h.move(0, rate)
+    h.hold(123, 90, 0)
+    const reading = h.hold(123, 90, gamma)
+    assert.ok(Math.abs(reading.twist - gamma) < 0.001)
     assert.deepEqual(h.results, [expected])
   }
 })
 
-test('immediate rebound is ignored, another fast gesture works after settling', () => {
+test('heading rotation is detected even when the phone is upright', () => {
   const h = harness()
-  h.move()
-  h.move(120, 0, 5)
-  h.move(-120, 0, 5)
+  h.hold(0, 90, 0)
+  h.hold(20, 90, 0)
   assert.deepEqual(h.results, ['next'])
-  h.move(0, 0, 50)
+})
+
+test('angles are relative to a comfortable tilted reading position', () => {
+  const h = harness()
+  h.hold(123, 65, 20)
+  const reading = h.hold(123, 65, 35)
+  assert.ok(Math.abs(reading.twist - 15) < 0.001)
   assert.deepEqual(h.results, ['next'])
-  h.move(-120, 0, 5)
+})
+
+test('a slow tilt triggers without any speed requirement', () => {
+  const h = harness()
+  h.hold()
+  for (let gamma = 0; gamma <= 20; gamma += 0.1) h.sample(0, 0, gamma)
+  assert.deepEqual(h.results, ['next'])
+})
+
+test('holding tilted turns just one page and requires neutral before another', () => {
+  const h = harness()
+  h.hold()
+  h.hold(0, 0, 20, 150)
+  h.hold(0, 0, -20, 100)
+  assert.deepEqual(h.results, ['next'])
+  h.hold(0, 0, 4)
+  h.hold(0, 0, -20)
   assert.deepEqual(h.results, ['next', 'prev'])
 })
 
-test('continuous rotation cannot turn multiple pages', () => {
+test('returning to neutral does not turn a page', () => {
   const h = harness()
-  h.move()
-  h.move(90, 0, 100)
+  h.hold()
+  h.hold(0, 0, 20)
+  h.hold()
+  assert.deepEqual(h.results, ['next'])
+  h.hold(0, 0, 20)
+  assert.deepEqual(h.results, ['next', 'next'])
+})
+
+test('both axes must return within five degrees before rearming', () => {
+  const h = harness()
+  h.hold()
+  h.hold(-20, 0, 0)
+  h.hold(0, 0, 8, 60)
+  h.hold(0, 0, -20)
   assert.deepEqual(h.results, ['next'])
 })
 
-test('small jitter and isolated short impulses are ignored', () => {
+test('motion below threshold, noise and brief spikes are ignored', () => {
   const h = harness()
-  h.move()
-  for (let i = 0; i < 100; i++) h.sample(i % 2 ? 4 : -4)
-  h.sample(100)
-  h.move()
+  h.hold()
+  h.hold(0, 0, 14)
+  h.sample(0, 0, 30)
+  h.hold()
   assert.deepEqual(h.results, [])
 })
 
-test('calibration waits for a steady grip', () => {
+test('calibration waits for a steady initial grip', () => {
   const h = harness()
-  h.move(120)
+  for (let i = 0; i < 50; i++) h.sample(0, 0, i % 2 ? 25 : -25)
   assert.deepEqual(h.results, [])
-  h.move()
-  h.move(120)
+  assert.equal(h.hold(0, 0, 10).calibrated, true)
+  h.hold(0, 0, 30)
   assert.deepEqual(h.results, ['next'])
 })
 
-test('sensor gaps recalibrate without turning pages', () => {
+test('sensor gaps recalibrate at the new grip without navigating', () => {
   const h = harness()
-  h.move()
-  h.sample(120, 0, 1000)
-  h.move(120)
+  h.hold()
+  h.sample(0, 0, 30, 1000)
+  h.hold(0, 0, 30)
   assert.deepEqual(h.results, [])
-  h.move()
-  h.move(120)
+  h.hold(0, 0, 45)
   assert.deepEqual(h.results, ['next'])
 })
 
-test('higher sensitivity accepts lower speeds', () => {
-  const low = harness(1)
-  const high = harness(5)
-  for (const h of [low, high]) {
-    h.move()
-    h.move(50, 0, 5)
+test('configurable thresholds are clamped between ten and thirty degrees', () => {
+  for (const [threshold, gamma, expected] of [[10, 10, ['next']], [30, 29, []], [30, 30, ['next']], [1, 9, []], [100, 30, ['next']], [NaN, 15, ['next']]]) {
+    const h = harness(threshold)
+    h.hold()
+    h.hold(0, 0, gamma)
+    assert.deepEqual(h.results, expected)
   }
-  assert.deepEqual(low.results, [])
-  assert.deepEqual(high.results, ['next'])
 })
 
-test('a brief fast rotation with a small angle triggers immediately', () => {
+test('orientation wraparound does not create a large angle', () => {
   const h = harness()
-  h.move()
-  h.sample(100)
-  h.sample(100)
-  assert.deepEqual(h.results, ['next'])
-})
-
-test('slow rotations are ignored regardless of their total angle', () => {
-  const h = harness()
-  h.move()
-  h.move(30, 0, 200)
-  h.move()
-  h.move(0, -30, 200)
+  h.hold(355)
+  const reading = h.hold(5)
+  assert.ok(Math.abs(reading.roll + 10) < 0.001)
   assert.deepEqual(h.results, [])
+  h.hold(15)
+  assert.deepEqual(h.results, ['prev'])
 })
 
-test('changing direction or axis cannot combine unrelated fast readings', () => {
-  const h = harness()
-  h.move()
-  for (let i = 0; i < 20; i++) h.sample(i % 2 ? 120 : -120)
-  h.move()
-  for (let i = 0; i < 20; i++) h.sample(i % 2 ? 120 : 0, i % 2 ? 0 : 120)
-  assert.deepEqual(h.results, [])
-})
-
-test('speed thresholds match settings and are bounded', () => {
-  assert.equal(wristSpeedThreshold(1), 95)
-  assert.equal(wristSpeedThreshold(3), 65)
-  assert.equal(wristSpeedThreshold(5), 35)
-  assert.equal(wristSpeedThreshold(0), 95)
-  assert.equal(wristSpeedThreshold(10), 35)
-})
-
-test('invalid readings are ignored', () => {
-  const detect = createWristDetector(3)
-  assert.equal(detect(NaN, 0, 20), null)
-  assert.equal(detect(0, Infinity, 40), null)
-  assert.equal(detect(0, 0, NaN), null)
-})
-
-test('screen-relative axes support portrait, landscape and inverted portrait', () => {
-  for (const [alpha, beta, gamma, angle, roll, twist] of [
-    [-40, 0, 30, 0, 40, 30],
-    [-40, -30, 0, 90, 40, 30],
-    [-40, 30, 0, 270, 40, 30],
-    [-40, 0, -30, 180, 40, 30],
-  ]) {
-    const result = screenRotation(alpha, beta, gamma, angle)
-    assert.ok(Math.abs(result.roll - roll) < 0.001)
-    assert.ok(Math.abs(result.twist - twist) < 0.001)
+test('relative angles follow portrait, landscape and inverted portrait', () => {
+  for (const [screenAngle, beta, gamma] of [[0, 0, 20], [90, -20, 0], [270, 20, 0], [180, 0, -20]]) {
+    const h = harness(15, screenAngle)
+    h.hold()
+    const reading = h.hold(0, beta, gamma)
+    assert.ok(Math.abs(reading.twist - 20) < 0.001)
+    assert.deepEqual(h.results, ['next'])
   }
 })
 
 test('forward and backward pitch alone does not navigate', () => {
   const h = harness()
-  h.move()
-  for (let i = 0; i < 50; i++) {
-    const { roll, twist } = screenRotation(0, i % 2 ? 60 : -60, 0, 0)
-    h.sample(roll, twist)
-  }
+  h.hold()
+  h.hold(0, 40)
+  h.hold(0, -40)
   assert.deepEqual(h.results, [])
+})
+
+test('invalid sensor readings are ignored', () => {
+  const detect = createTiltDetector(15)
+  assert.equal(detect(orientationQuaternion(NaN, 0, 0), 20), null)
+  assert.equal(detect(orientationQuaternion(0, 0, 0), NaN), null)
 })

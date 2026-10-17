@@ -88,7 +88,7 @@ export function useReaderSession(bookId: string, settings: ReaderSettings) {
 
   const motion = useTiltNavigation({
     enabled: settings.tiltNavigation,
-    sensitivity: settings.tiltSensitivity,
+    angle: settings.tiltAngle,
     paused: !!chrome.panel || !!wordLookup.popup || engine.loading || !!engine.error,
     onNext: goNext,
     onPrev: goPrev,

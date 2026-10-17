@@ -69,7 +69,7 @@ export interface ReaderSettings {
   translateTo: string
   debugMode: boolean
   tiltNavigation: boolean
-  tiltSensitivity: number
+  tiltAngle: number
   pdfSpread: PdfSpreadMode
   pdfCrop: boolean
   pdfCropMargin: number

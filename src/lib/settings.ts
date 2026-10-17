@@ -18,7 +18,7 @@ export const defaultSettings: ReaderSettings = {
   translateTo: 'id',
   debugMode: false,
   tiltNavigation: false,
-  tiltSensitivity: 3,
+  tiltAngle: 15,
   pdfSpread: 'auto',
   pdfCrop: false,
   pdfCropMargin: 8,
@@ -141,12 +141,13 @@ export function loadSettings(): ReaderSettings {
     const parsed = JSON.parse(raw) as Omit<Partial<ReaderSettings>, 'darkBackground'> & {
       darkBackground?: unknown
       shakeNavigation?: boolean
-      shakeSensitivity?: number
     }
     const darkBackground = parseDarkBackground(parsed.darkBackground)
     const tiltNavigation = parsed.tiltNavigation ?? parsed.shakeNavigation ?? defaultSettings.tiltNavigation
-    const tiltSensitivity = parsed.tiltSensitivity ?? parsed.shakeSensitivity ?? defaultSettings.tiltSensitivity
-    return { ...defaultSettings, ...parsed, darkBackground, tiltNavigation, tiltSensitivity }
+    const tiltAngle = typeof parsed.tiltAngle === 'number' && Number.isFinite(parsed.tiltAngle)
+      ? Math.min(30, Math.max(10, parsed.tiltAngle))
+      : defaultSettings.tiltAngle
+    return { ...defaultSettings, ...parsed, darkBackground, tiltNavigation, tiltAngle }
   } catch {
     return { ...defaultSettings }
   }
