@@ -68,6 +68,8 @@ export interface ReaderSettings {
   ttsVoice: string
   translateTo: string
   debugMode: boolean
+  shakeNavigation: boolean
+  shakeSensitivity: number
   pdfSpread: PdfSpreadMode
   pdfCrop: boolean
   pdfCropMargin: number

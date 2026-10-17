@@ -12,6 +12,7 @@ Pembaca **EPUB & PDF** yang berjalan **sepenuhnya di browser**. Cukup seret (dra
 - Tema: terang, sepia, gelap
 - Font **Literata** default, plus opsi font lain
 - Layar penuh (Fullscreen API) di perpustakaan & reader
+- Navigasi goyangan HP (opsional): sentakkan ke kanan untuk berikutnya, ke kiri untuk sebelumnya; tersedia di EPUB dan PDF, termasuk reflow
 - 100% client-side & offline-capable
 
 ### EPUB
@@ -32,6 +33,12 @@ Pembaca **EPUB & PDF** yang berjalan **sepenuhnya di browser**. Cukup seret (dra
 - Opsi **"Tema untuk halaman scan"** agar halaman hasil scan ikut mengikuti tema
 - **Mode reflow** (khusus halaman berteks): mengekstrak teks jadi alineal mengalir, diatur ukuran huruf/jenis huruf/rata teks
 - Daftar isi (outline) PDF rekursif
+
+## Navigasi dengan goyangan HP
+
+Aktifkan **Goyang untuk pindah halaman** di pengaturan reader, lalu izinkan akses sensor jika diminta. Tutup panel pengaturan, diamkan HP sebentar, lalu sentakkan ke kanan/kiri (bukan sekadar dimiringkan). Satu gestur memindahkan satu halaman; gerakan balik ditahan dan perlu jeda sebelum gestur berikutnya. Sensitivitas 1–5 dapat diatur, dengan angka lebih tinggi membutuhkan sentakan lebih ringan.
+
+Fitur memerlukan HTTPS (atau localhost), sensor akselerasi tanpa gravitasi, serta browser yang mendukung Device Motion. Jika izin perlu diberikan ulang, gunakan **Aktifkan izin sensor**. Navigasi dijeda saat panel terbuka atau tab berada di latar belakang. Navigasi sentuh dan keyboard tetap tersedia bila sensor tidak didukung.
 
 ## Buku sampel
 

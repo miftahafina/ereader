@@ -10,10 +10,13 @@ import {
   SliderSetting,
 } from './SettingsControls'
 import { SettingIcon } from './SettingsIcon'
+import { ShakeNavigationSettings } from './ShakeNavigationSettings'
+import type { ShakeNavigationControl } from '../hooks/useShakeNavigation'
 
 interface SettingsPanelProps {
   settings: ReaderSettings
   onChange: (patch: Partial<ReaderSettings>) => void
+  motion: ShakeNavigationControl
 }
 
 const themeOptions: { value: ReaderTheme; label: string }[] = [
@@ -72,7 +75,7 @@ function AlignIcon({ value }: { value: TextAlign }) {
   )
 }
 
-export function SettingsPanel({ settings, onChange }: SettingsPanelProps) {
+export function SettingsPanel({ settings, onChange, motion }: SettingsPanelProps) {
   const voices = useVoices()
   const alignOptions = textAlignOptions.map((option) => ({
     value: option.value,
@@ -198,6 +201,8 @@ export function SettingsPanel({ settings, onChange }: SettingsPanelProps) {
         value={settings.grain}
         onChange={(grain) => onChange({ grain })}
       />
+
+      <ShakeNavigationSettings settings={settings} onChange={onChange} motion={motion} />
 
       <h2 className="sidebar-title">Terjemahan</h2>
 

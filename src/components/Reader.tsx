@@ -58,6 +58,7 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
     removeBookmark,
     selectBookmark,
     isBookmarked,
+    motion,
   } = useReaderSession(bookId, settings)
 
   return (
@@ -161,7 +162,7 @@ export function Reader({ bookId, settings, onSettingsChange, onClose }: ReaderPr
 
         {panel === 'settings' && (
           <aside className="reader-sidebar settings-sidebar">
-            <SettingsPanel settings={settings} onChange={onSettingsChange} />
+            <SettingsPanel settings={settings} onChange={onSettingsChange} motion={motion} />
           </aside>
         )}
       </div>

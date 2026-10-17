@@ -7,6 +7,7 @@ import { usePdfReflowPager } from '../hooks/usePdfReflowPager'
 import { usePdfView } from '../hooks/usePdfView'
 import { useBookmarks } from '../hooks/useBookmarks'
 import { useReaderChrome } from '../hooks/useReaderChrome'
+import { useShakeNavigation } from '../hooks/useShakeNavigation'
 import { literataFontFaces } from '../lib/fontFaces'
 import { pageHasText } from '../lib/pdf'
 import { fontOptions } from '../lib/settings'
@@ -72,6 +73,14 @@ export function PdfReader({ bookId, settings, onSettingsChange, onClose }: PdfRe
     windowStyle: reflowWindowStyle,
     contentStyle: reflowContentStyle,
   } = usePdfReflowPager(settings.pdfReflow, settings.maxWidth, reflowLayoutKey)
+
+  const motion = useShakeNavigation({
+    enabled: settings.shakeNavigation,
+    sensitivity: settings.shakeSensitivity,
+    paused: !!chrome.panel || loading || !!error || (settings.pdfReflow && reflow.loaded < reflow.total),
+    onNext: settings.pdfReflow ? reflowNext : view.goNext,
+    onPrev: settings.pdfReflow ? reflowPrev : view.goPrev,
+  })
 
   useEffect(() => {
     setPageRef.current = view.setPage
@@ -340,7 +349,7 @@ export function PdfReader({ bookId, settings, onSettingsChange, onClose }: PdfRe
 
         {chrome.panel === 'settings' && (
           <aside className="reader-sidebar settings-sidebar">
-            <PdfSettingsPanel settings={settings} onChange={onSettingsChange} />
+            <PdfSettingsPanel settings={settings} onChange={onSettingsChange} motion={motion} />
           </aside>
         )}
       </div>

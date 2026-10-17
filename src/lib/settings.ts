@@ -17,6 +17,8 @@ export const defaultSettings: ReaderSettings = {
   ttsVoice: '',
   translateTo: 'id',
   debugMode: false,
+  shakeNavigation: false,
+  shakeSensitivity: 3,
   pdfSpread: 'auto',
   pdfCrop: false,
   pdfCropMargin: 8,

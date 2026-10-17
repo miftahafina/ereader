@@ -2,10 +2,13 @@ import { darkBackgroundLabels, defaultSettings, fontOptions, textAlignOptions } 
 import type { PdfSpreadMode, ReaderSettings, ReaderTheme, TextAlign } from '../lib/types'
 import { SegmentedControl, SelectSetting, SettingGroup, SettingRow, SliderSetting } from './SettingsControls'
 import { SettingIcon } from './SettingsIcon'
+import { ShakeNavigationSettings } from './ShakeNavigationSettings'
+import type { ShakeNavigationControl } from '../hooks/useShakeNavigation'
 
 interface PdfSettingsPanelProps {
   settings: ReaderSettings
   onChange: (patch: Partial<ReaderSettings>) => void
+  motion: ShakeNavigationControl
 }
 
 const themeOptions: { value: ReaderTheme; label: string }[] = [
@@ -23,7 +26,7 @@ const spreadOptions: { value: PdfSpreadMode; label: string }[] = [
 
 const reflowAlignOptions = textAlignOptions.filter((option) => option.value !== 'default')
 
-export function PdfSettingsPanel({ settings, onChange }: PdfSettingsPanelProps) {
+export function PdfSettingsPanel({ settings, onChange, motion }: PdfSettingsPanelProps) {
   return (
     <div className="settings">
       <h2 className="sidebar-title">Tampilan PDF</h2>
@@ -155,6 +158,8 @@ export function PdfSettingsPanel({ settings, onChange }: PdfSettingsPanelProps) 
           onChange={(textAlign) => onChange({ textAlign })}
         />
       </SettingGroup>
+
+      <ShakeNavigationSettings settings={settings} onChange={onChange} motion={motion} />
 
       <button className="ghost-btn" onClick={() => onChange({ ...defaultSettings })}>
         <SettingIcon name="reset" />

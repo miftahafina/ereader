@@ -15,6 +15,7 @@ import { useReaderNavigation } from './useReaderNavigation'
 import { useReaderTts } from './useReaderTts'
 import { useSectionTranslation } from './useSectionTranslation'
 import { useWordLookup } from './useWordLookup'
+import { useShakeNavigation } from './useShakeNavigation'
 
 export function useReaderSession(bookId: string, settings: ReaderSettings) {
   const settingsRef = useLatest(settings)
@@ -84,6 +85,14 @@ export function useReaderSession(bookId: string, settings: ReaderSettings) {
   const goPrev = useCallback(() => {
     void renditionRef.current?.prev()
   }, [])
+
+  const motion = useShakeNavigation({
+    enabled: settings.shakeNavigation,
+    sensitivity: settings.shakeSensitivity,
+    paused: !!chrome.panel || !!wordLookup.popup || engine.loading || !!engine.error,
+    onNext: goNext,
+    onPrev: goPrev,
+  })
 
   const handleTocSelect = useCallback(
     (href: string) => {
@@ -224,5 +233,6 @@ export function useReaderSession(bookId: string, settings: ReaderSettings) {
     removeBookmark: removeStoredBookmark,
     selectBookmark,
     isBookmarked,
+    motion,
   }
 }
